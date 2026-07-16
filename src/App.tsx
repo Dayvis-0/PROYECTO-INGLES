@@ -25,8 +25,7 @@ import {
   Play,
   RotateCcw,
   CheckCircle2,
-  Users,
-  Image
+  Users
 } from "lucide-react";
 import { Leccion, Calificacion, EjercicioCalentamiento, PreguntaEvaluacion, VocabularioItem } from "./types";
 import { 
@@ -37,7 +36,10 @@ import {
   PRESENT_SIMPLE_SVG,
   PRESENT_CONTINUOUS_SVG
 } from "./data";
-
+import { isWordSimilarityMatch } from "./utils/similarity";
+import { cleanCompare } from "./utils/cleaners";
+import { speakWord } from "./utils/tts";
+import { getInteractiveGrammarSegments } from "./utils/grammar";
 export default function App() {
   // --- View and Routing State ---
   const [currentView, setCurrentView] = useState<"welcome" | "login" | "docente" | "estudiante_home" | "estudiante_leccion">("welcome");
@@ -110,221 +112,7 @@ export default function App() {
   const [activeHoverGrammarWord, setActiveHoverGrammarWord] = useState<number>(0);
 
   // Helper determining the interactive segments breakdown for Step 2 corresponding to any lesson
-  const getInteractiveGrammarSegments = (lesson: Leccion) => {
-    // Check if lesson has teacher-defined interactive grammar segments
-    if (lesson.ejemploOracion && Array.isArray(lesson.ejemploRoles)) {
-      const words = lesson.ejemploOracion.split(" ").filter(Boolean);
-      return words.map((word, index) => {
-        const role = lesson.ejemploRoles?.[index] || "Ninguno";
-        let mappedRole = "Componente 💎";
-        if (role === "Sujeto") mappedRole = "Sujeto / Subject 👤";
-        else if (role === "Verbo") mappedRole = "Verbo / Verb ⚡";
-        else if (role === "Complemento") mappedRole = "Complemento / Complement 📌";
-        
-        return {
-          word,
-          role: mappedRole,
-          desc: "",
-          badgeColor: "bg-sky-500 text-white",
-          wordColor: "hover:bg-sky-50 border-sky-305 text-sky-700 bg-sky-50/20"
-        };
-      });
-    }
-
-    // Handcrafted premium segments for default lessons
-    if (lesson.id === "1") {
-      return [
-        {
-          word: "She",
-          role: "Subject (Sujeto)",
-          desc: "El pronombre o sujeto de la oración que realiza la acción.",
-          emoji: "👤",
-          badgeColor: "bg-emerald-500 text-white",
-          wordColor: "hover:bg-emerald-50 border-emerald-300 text-emerald-700 bg-emerald-50/20"
-        },
-        {
-          word: "works",
-          role: "Verb (Verbo con -s)",
-          desc: "La acción principal. En el presente simple, los verbos llevan '-s' o '-es' cuando el sujeto es singular ('He', 'She', 'It').",
-          emoji: "⚡",
-          badgeColor: "bg-sky-500 text-white",
-          wordColor: "hover:bg-sky-50 border-sky-300 text-sky-700 bg-sky-50/20"
-        },
-        {
-          word: "every day",
-          role: "Complement (Complemento)",
-          desc: "La información añadida que expresa la frecuencia, el tiempo o las circunstancias de la actividad.",
-          emoji: "📌",
-          badgeColor: "bg-amber-500 text-slate-800",
-          wordColor: "hover:bg-amber-50 border-amber-300 text-amber-700 bg-amber-50/20"
-        }
-      ];
-    }
-    
-    if (lesson.id === "2") {
-      return [
-        {
-          word: "They",
-          role: "Subject (Sujeto)",
-          desc: "El pronombre personal o grupo de personas que realiza la acción.",
-          emoji: "👤",
-          badgeColor: "bg-emerald-500 text-white",
-          wordColor: "hover:bg-emerald-50 border-emerald-300 text-emerald-700 bg-emerald-50/20"
-        },
-        {
-          word: "are",
-          role: "Auxiliary Verb (Verbo Auxiliar)",
-          desc: "El verbo auxiliar 'to be' conjugado para la persona correspondiente ('They are' = Ellos están).",
-          emoji: "⚙️",
-          badgeColor: "bg-orange-500 text-white",
-          wordColor: "hover:bg-orange-50 border-orange-300 text-orange-700 bg-orange-50/20"
-        },
-        {
-          word: "learning",
-          role: "Main Verb (Verbo principal con -ing)",
-          desc: "La acción principal continuada. Lleva el sufijo '-ing' para denotar que el proceso está ocurriendo en tiempo real.",
-          emoji: "⚡",
-          badgeColor: "bg-sky-500 text-white",
-          wordColor: "hover:bg-sky-50 border-sky-300 text-sky-700 bg-sky-50/20"
-        },
-        {
-          word: "English",
-          role: "Complement (Complemento)",
-          desc: "El objeto o elemento sobre el cual recae el verbo principal de la acción (Inglés).",
-          emoji: "📌",
-          badgeColor: "bg-amber-500 text-slate-800",
-          wordColor: "hover:bg-amber-50 border-amber-300 text-amber-700 bg-amber-50/20"
-        }
-      ];
-    }
-
-    // Generic automated mapping fallback for custom teacher lessons!
-    const fallbackSentence = (lesson.calentamiento && lesson.calentamiento[0]) 
-      ? lesson.calentamiento[0].fraseMetaEn 
-      : "I study English";
-    
-    const words = fallbackSentence.split(" ").filter(Boolean);
-    
-    if (words.length <= 1) {
-      return [
-        {
-          word: fallbackSentence,
-          role: "Sentence Unit (Componente)",
-          desc: "La expresión gramatical interactiva de la lección.",
-          emoji: "💎",
-          badgeColor: "bg-purple-500 text-white",
-          wordColor: "hover:bg-purple-50 border-purple-300 text-purple-700 bg-purple-50/20"
-        }
-      ];
-    }
-
-    // Auto classify 3 blocks
-    if (words.length === 3) {
-      return [
-        {
-          word: words[0],
-          role: "Subject (Sujeto)",
-          desc: "El sujeto principal o actor de la oración en inglés.",
-          emoji: "👤",
-          badgeColor: "bg-emerald-500 text-white",
-          wordColor: "hover:bg-emerald-50 border-emerald-300 text-emerald-700 bg-emerald-50/20"
-        },
-        {
-          word: words[1],
-          role: "Verb / Action (Verbo/Acción)",
-          desc: "El verbo conjugado que representa la acción principal.",
-          emoji: "⚡",
-          badgeColor: "bg-sky-500 text-white",
-          wordColor: "hover:bg-sky-50 border-sky-300 text-sky-700 bg-sky-50/20"
-        },
-        {
-          word: words[2],
-          role: "Complement / Object (Complemento)",
-          desc: "La información o destino que complementa la lógica de la acción.",
-          emoji: "📌",
-          badgeColor: "bg-amber-500 text-slate-800",
-          wordColor: "hover:bg-amber-50 border-amber-300 text-amber-700 bg-amber-50/20"
-        }
-      ];
-    }
-
-    // 4 or more words (e.g., "I am writing an essay")
-    const auxVerbs = ["am", "is", "are", "do", "does", "did", "have", "has", "will", "would", "can", "should"];
-    const includesAux = words.some(w => auxVerbs.includes(w.toLowerCase()));
-    
-    if (includesAux && words.length >= 4) {
-      const auxIndex = words.findIndex(w => auxVerbs.includes(w.toLowerCase()));
-      const subjectPart = words.slice(0, auxIndex).join(" ") || words[0];
-      const auxPart = words[auxIndex];
-      const verbPart = words[auxIndex + 1] || "verb";
-      const complementPart = words.slice(auxIndex + 2).join(" ") || "complement";
-
-      return [
-        {
-          word: subjectPart,
-          role: "Subject (Sujeto)",
-          desc: "El sujeto o frase nominal que realiza la acción.",
-          emoji: "👤",
-          badgeColor: "bg-emerald-500 text-white",
-          wordColor: "hover:bg-emerald-50 border-emerald-300 text-emerald-700 bg-emerald-50/20"
-        },
-        {
-          word: auxPart,
-          role: "Auxiliary Verb (Auxiliar)",
-          desc: "Modificador verbal o enlace temporal de la estructura.",
-          emoji: "⚙️",
-          badgeColor: "bg-orange-500 text-white",
-          wordColor: "hover:bg-orange-50 border-orange-300 text-orange-700 bg-orange-50/20"
-        },
-        {
-          word: verbPart,
-          role: "Verb / Action (Verbo principal)",
-          desc: "La acción o estado fundamental representado por el verbo.",
-          emoji: "⚡",
-          badgeColor: "bg-sky-500 text-white",
-          wordColor: "hover:bg-sky-50 border-sky-300 text-sky-700 bg-sky-50/20"
-        },
-        {
-          word: complementPart,
-          role: "Complement (Complemento)",
-          desc: "La información detallada de lugar, tiempo, o modo que completa el sentido.",
-          emoji: "📌",
-          badgeColor: "bg-amber-500 text-slate-800",
-          wordColor: "hover:bg-amber-50 border-amber-300 text-amber-700 bg-amber-50/20"
-        }
-      ];
-    } else {
-      const subj = words[0];
-      const vrb = words[1];
-      const compl = words.slice(2).join(" ");
-      return [
-        {
-          word: subj,
-          role: "Subject (Sujeto)",
-          desc: "El sujeto de la oración.",
-          emoji: "👤",
-          badgeColor: "bg-emerald-500 text-white",
-          wordColor: "hover:bg-emerald-50 border-emerald-300 text-emerald-700 bg-emerald-50/20"
-        },
-        {
-          word: vrb,
-          role: "Verb / Action (Verbo principal)",
-          desc: "La acción principal de la oración.",
-          emoji: "⚡",
-          badgeColor: "bg-sky-500 text-white",
-          wordColor: "hover:bg-sky-50 border-sky-300 text-sky-700 bg-sky-50/20"
-        },
-        {
-          word: compl,
-          role: "Complement (Complemento)",
-          desc: "El complemento verbal con información adicional de la oración.",
-          emoji: "📌",
-          badgeColor: "bg-amber-500 text-slate-800",
-          wordColor: "hover:bg-amber-50 border-amber-300 text-amber-700 bg-amber-50/20"
-        }
-      ];
-    }
-  };
+  // Selected option for exam question
   
   // Selected option for exam question
   const [selectedExamOptionIndex, setSelectedExamOptionIndex] = useState<number | null>(null);
@@ -344,84 +132,11 @@ export default function App() {
   const [speechError, setSpeechError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   
-  // Helper to compute levenshtein distance between two words for fuzzy accurate scoring
-  const getWordLevenshtein = (a: string, b: string): number => {
-    const matrix: number[][] = [];
-    for (let i = 0; i <= b.length; i++) {
-       matrix[i] = [i];
-    }
-    for (let j = 0; j <= a.length; j++) {
-       matrix[0][j] = j;
-    }
-    for (let i = 1; i <= b.length; i++) {
-       for (let j = 1; j <= a.length; j++) {
-          if (b.charAt(i - 1) === a.charAt(j - 1)) {
-             matrix[i][j] = matrix[i - 1][j - 1];
-          } else {
-             matrix[i][j] = Math.min(
-                matrix[i - 1][j - 1] + 1, // substitution
-                matrix[i][j - 1] + 1,     // insertion
-                matrix[i - 1][j] + 1      // deletion
-             );
-          }
-       }
-    }
-    return matrix[b.length][a.length];
-  };
-
-  const isWordSimilarityMatch = (wordA: string, wordB: string): boolean => {
-    const cleanA = wordA.toLowerCase().trim();
-    const cleanB = wordB.toLowerCase().trim();
-    if (cleanA === cleanB) return true;
-    
-    const distance = getWordLevenshtein(cleanA, cleanB);
-    if (cleanA.length <= 4) {
-      return distance <= 1; // permit only slight variations on short words
-    } else {
-      return distance <= 2; // permit slightly more phonetic leeway on longer words
-    }
-  };
+  // Congratulations Screen State
   
   // Congratulations Screen State
   const [gainedGrade, setGainedGrade] = useState<number | null>(null);
   const [gainedCorrect, setGainedCorrect] = useState<number | null>(null);
-
-  // Text-To-Speech Pronunciation auto-trigger helper with premium Google Translate proxy backend and browser fallback
-  const speakWord = (text: string) => {
-    if (!text) return;
-    const cleanText = text.trim();
-    // Route through our Same-Origin custom server proxy which retrieves premium voices safely without CORS and referrers blocking
-    const ttsUrl = `/api/tts?text=${encodeURIComponent(cleanText)}`;
-    
-    const audio = new Audio(ttsUrl);
-    // Play the natural stream from our back-end
-    audio.play().catch((err) => {
-      console.warn("Could not play premium server-side TTS stream, falling back to offline SpeechSynthesis:", err);
-      
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = "en-US";
-        utterance.rate = 0.85;
-  
-        // Select high-quality native English voice to prevent fallback Spanish system accent readouts
-        const voices = window.speechSynthesis.getVoices();
-        let selectedVoice = voices.find(v => v.lang === "en-US" && v.name.includes("Google"));
-        if (!selectedVoice) selectedVoice = voices.find(v => v.lang === "en-US" && v.name.includes("Natural"));
-        if (!selectedVoice) selectedVoice = voices.find(v => v.lang === "en-US");
-        if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith("en-"));
-        if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith("en"));
-        
-        if (selectedVoice) {
-          utterance.voice = selectedVoice;
-        }
-  
-        window.speechSynthesis.speak(utterance);
-      } else {
-        console.warn("TTS not supported in this browser");
-      }
-    });
-  };
 
   // Sound recognition using web Speech Recognition API
   const startVoiceRecording = (targetSentence: string) => {
@@ -518,14 +233,6 @@ export default function App() {
         setVoiceSimilarity(95);
       }, 1500);
     }
-  };
-
-  // Helper string cleaner for warmups comparison
-  const cleanCompare = (s: string) => {
-    return s.toLowerCase()
-      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
   };
 
   // Setup bubble scramble word options
@@ -1079,28 +786,6 @@ export default function App() {
     setSelectedRole(null);
     setCurrentView("welcome");
     setWalkthroughActive(false);
-  };
-
-  // Render correct SVG illustration preview
-  const renderSVGInfographic = (imgStr: string) => {
-    if (imgStr.startsWith("data:image/svg+xml")) {
-      return (
-        <div 
-          className="w-full max-w-lg mx-auto rounded-xl overflow-hidden shadow-sm flex justify-center [&_svg]:max-h-[160px] md:[&_svg]:max-h-[220px] [&_svg]:w-auto [&_svg]:h-full [&_svg]:mx-auto"
-          dangerouslySetInnerHTML={{ __html: decodeURIComponent(imgStr.replace("data:image/svg+xml;utf8,", "")) }}
-        />
-      );
-    }
-
-    // Modern styled fallback according to user's exact specification & screenshot
-    return (
-      <div className="w-full max-w-lg mx-auto border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-xl py-6 px-4 flex flex-col items-center justify-center min-h-[140px]">
-        <Image className="w-10 h-10 text-slate-400/80 mb-2 stroke-[1.5]" />
-        <span className="font-mono text-[10px] text-slate-400 font-medium tracking-wide">
-          Ref: {imgStr || "https://example.com/presentsimple.png"}
-        </span>
-      </div>
-    );
   };
 
   return (
