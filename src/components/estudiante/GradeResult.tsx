@@ -15,7 +15,7 @@ export default function GradeResult({ activeLessonTitle, totalExamQuestions }: P
     setFlatScreenIndex,
     setVistosVocabulario,
     setExamCorrectCount,
-    setGainedGrade: setGainedGradeCtx,
+    setGainedGrade,
     setGainedCorrect,
     setFeedbackState,
     setFeedbackMessage,
@@ -93,7 +93,7 @@ export default function GradeResult({ activeLessonTitle, totalExamQuestions }: P
               setFlatScreenIndex(0);
               setVistosVocabulario([]);
               setExamCorrectCount(0);
-              setGainedGradeCtx(null);
+              setGainedGrade(null);
               setGainedCorrect(0);
               setFeedbackState("idle");
               setFeedbackMessage("");

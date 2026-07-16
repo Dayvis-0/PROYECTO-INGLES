@@ -1,5 +1,12 @@
 import { useRef, useCallback } from "react";
 import { isWordSimilarityMatch } from "../utils/similarity";
+import { cleanCompare } from "../utils/cleaners";
+import {
+  isSpeechRecognitionSupported,
+  createSpeechRecognition,
+  getSpeechErrorMessage,
+  createSimulatedResult,
+} from "../utils/speech";
 import { useAppContext } from "../context/AppContext";
 
 /**
@@ -32,35 +39,37 @@ export function useSpeechRecognition() {
     }
   }, []);
 
+  const runSimulation = useCallback(
+    (targetSentence: string, delay: number, similarity: number = 95) => {
+      setIsListeningVoice(true);
+      setTimeout(() => {
+        setIsListeningVoice(false);
+        const result = createSimulatedResult(targetSentence, similarity);
+        setVoiceTranscript(result.transcript);
+        setVoiceSimilarity(result.similarity);
+      }, delay);
+    },
+    [setIsListeningVoice, setVoiceTranscript, setVoiceSimilarity]
+  );
+
   const startVoiceRecording = useCallback(
     (targetSentence: string) => {
       // Abort any previous recognition session
       stopVoiceRecording();
 
-      const SpeechRecognition =
-        (window as any).SpeechRecognition ||
-        (window as any).webkitSpeechRecognition;
-
-      if (!SpeechRecognition) {
+      if (!isSpeechRecognitionSupported()) {
         setSpeechError(
           "La API de reconocimiento de voz no está soportada en tu navegador (usa Chrome, Edge o Safari). Iniciando práctica simulada para que continúes sin detenerte."
         );
-        setIsListeningVoice(true);
-        setTimeout(() => {
-          setIsListeningVoice(false);
-          setVoiceTranscript(targetSentence);
-          setVoiceSimilarity(100);
-          setSpeechError(null);
-        }, 2000);
+        runSimulation(targetSentence, 2000, 100);
+        setTimeout(() => setSpeechError(null), 2500);
         return;
       }
 
       try {
         setSpeechError(null);
-        const rec = new SpeechRecognition();
-        rec.lang = "en-US";
-        rec.continuous = false;
-        rec.interimResults = false;
+        const rec = createSpeechRecognition();
+        if (!rec) return;
         recognitionRef.current = rec;
 
         rec.onstart = () => {
@@ -73,17 +82,10 @@ export function useSpeechRecognition() {
           const transcriptText: string = event.results[0][0].transcript;
           setVoiceTranscript(transcriptText);
 
-          const cleanStr = (s: string) =>
-            s
-              .toLowerCase()
-              .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "")
-              .replace(/\s+/g, " ")
-              .trim();
-
-          const tWords = cleanStr(targetSentence)
+          const tWords = cleanCompare(targetSentence)
             .split(" ")
             .filter(Boolean);
-          const rWords = cleanStr(transcriptText)
+          const rWords = cleanCompare(transcriptText)
             .split(" ")
             .filter(Boolean);
           let matchCount = 0;
@@ -101,25 +103,8 @@ export function useSpeechRecognition() {
 
         rec.onerror = (err: any) => {
           console.error("Speech Recognition Error", err);
-          if (err.error === "not-allowed") {
-            setSpeechError(
-              "El acceso al micrófono está restringido. Por favor, asegúrate de dar permisos en tu navegador ó haz clic en el botón 'Permitir'. Si estás en un iframe, abre en una ventana nueva."
-            );
-          } else if (err.error === "no-speech") {
-            setSpeechError(
-              "No se detectó sonido. Intenta hablar más alto o verifica la conexión de tu micrófono."
-            );
-          } else {
-            setSpeechError(
-              `Error al acceder al micrófono (${err.error || "desconocido"}). Iniciando simulación automática.`
-            );
-          }
-          setIsListeningVoice(true);
-          setTimeout(() => {
-            setIsListeningVoice(false);
-            setVoiceTranscript(targetSentence);
-            setVoiceSimilarity(95);
-          }, 1800);
+          setSpeechError(getSpeechErrorMessage(err.error || "unknown"));
+          runSimulation(targetSentence, 1800);
         };
 
         rec.onend = () => {
@@ -132,15 +117,17 @@ export function useSpeechRecognition() {
         setSpeechError(
           "No se pudo conectar con el servicio de voz. Iniciando simulación."
         );
-        setIsListeningVoice(true);
-        setTimeout(() => {
-          setIsListeningVoice(false);
-          setVoiceTranscript(targetSentence);
-          setVoiceSimilarity(95);
-        }, 1500);
+        runSimulation(targetSentence, 1500);
       }
     },
-    [setIsListeningVoice, setVoiceTranscript, setVoiceSimilarity, setSpeechError, stopVoiceRecording]
+    [
+      setIsListeningVoice,
+      setVoiceTranscript,
+      setVoiceSimilarity,
+      setSpeechError,
+      stopVoiceRecording,
+      runSimulation,
+    ]
   );
 
   return { recognitionRef, startVoiceRecording, stopVoiceRecording };

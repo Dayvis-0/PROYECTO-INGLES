@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { X } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import { useWalkthrough } from "../hooks/useWalkthrough";
-import { ProgressBar, FeedbackBanner } from "../components/ui";
+import { ProgressBar, FeedbackBanner, ModalConfirm } from "../components/ui";
 import {
   VocabularioStep,
   GramaticaStep,
@@ -28,6 +29,7 @@ export default function EstudianteLeccionView() {
   } = useAppContext();
 
   const { handleCheckAnswer, handleContinueWalkthrough } = useWalkthrough();
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   if (!walkthroughActive || !activeLesson) return null;
 
@@ -55,10 +57,7 @@ export default function EstudianteLeccionView() {
               );
               return;
             }
-            if (confirm("¿Estás seguro de que deseas salir y perder tu progreso actual?")) {
-              setWalkthroughActive(false);
-              setCurrentView("estudiante_home");
-            }
+            setShowExitConfirm(true);
           }}
           className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
         >
@@ -149,6 +148,21 @@ export default function EstudianteLeccionView() {
           </div>
         )}
       </main>
+
+      <ModalConfirm
+        isOpen={showExitConfirm}
+        title="Salir de la lección"
+        message="¿Estás seguro de que deseas salir y perder tu progreso actual?"
+        confirmText="Sí, salir"
+        cancelText="Seguir aquí"
+        variant="warning"
+        onConfirm={() => {
+          setShowExitConfirm(false);
+          setWalkthroughActive(false);
+          setCurrentView("estudiante_home");
+        }}
+        onCancel={() => setShowExitConfirm(false)}
+      />
     </div>
   );
 }

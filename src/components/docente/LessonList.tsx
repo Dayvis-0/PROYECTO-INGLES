@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { BookOpen, AlertCircle, Edit3, Trash2 } from "lucide-react";
 import type { Leccion, EjercicioCalentamiento, PreguntaEvaluacion, VocabularioItem } from "../../types";
 import { PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG, saveStoredLessons } from "../../data";
 import { useAppContext } from "../../context/AppContext";
+import { ModalConfirm } from "../ui";
 
 export default function LessonList() {
   const {
@@ -21,6 +23,8 @@ export default function LessonList() {
     setTeacherFormError,
   } = useAppContext();
 
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
   const { handleEditLesson, handleDeleteLesson, handleToggleLesson } = useLessonHandlers(
     lessons, setLessons,
     setEditingLessonId,
@@ -29,6 +33,13 @@ export default function LessonList() {
     setFormEjemploOracion, setFormEjemploRoles, setFormVocabularioDetallado,
     setTeacherFormError,
   );
+
+  const confirmDelete = () => {
+    if (deleteTargetId) {
+      handleDeleteLesson(deleteTargetId);
+      setDeleteTargetId(null);
+    }
+  };
 
   return (
     <div className="bg-white border-2 border-slate-200 p-6 rounded-3xl shadow-sm space-y-4">
@@ -98,7 +109,7 @@ export default function LessonList() {
                   >
                     <Edit3 className="w-5 h-5" />
                   </button>
-                  <button type="button" onClick={() => handleDeleteLesson(les.id)}
+                  <button type="button" onClick={() => setDeleteTargetId(les.id)}
                     className="text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 p-2.5 rounded-xl border border-rose-100 transition-colors cursor-pointer"
                     title="Eliminar Lección"
                   >
@@ -110,6 +121,17 @@ export default function LessonList() {
           })
         )}
       </div>
+
+      <ModalConfirm
+        isOpen={deleteTargetId !== null}
+        title="Eliminar lección"
+        message="¿Estás seguro que deseas eliminar este tema por completo? Esta acción no se puede deshacer."
+        confirmText="Sí, eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTargetId(null)}
+      />
     </div>
   );
 }
@@ -166,15 +188,13 @@ function useLessonHandlers(
   };
 
   const handleDeleteLesson = (id: string) => {
-    if (confirm("¿Estás seguro que deseas eliminar este tema por completo?")) {
-      const filtered = lessons.filter(l => l.id !== id);
-      const isDeletingActive = lessons.find(l => l.id === id)?.estado === "activa";
-      if (isDeletingActive && filtered.length > 0) {
-        filtered[0].estado = "activa";
-      }
-      setLessons(filtered);
-      saveStoredLessons(filtered);
+    const filtered = lessons.filter(l => l.id !== id);
+    const isDeletingActive = lessons.find(l => l.id === id)?.estado === "activa";
+    if (isDeletingActive && filtered.length > 0) {
+      filtered[0].estado = "activa";
     }
+    setLessons(filtered);
+    saveStoredLessons(filtered);
   };
 
   const handleToggleLesson = (id: string, currentStatus: "activa" | "inactiva") => {
