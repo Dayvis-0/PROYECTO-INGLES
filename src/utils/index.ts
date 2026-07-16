@@ -4,3 +4,4 @@ export { cleanCompare } from "./cleaners";
 export { speakWord } from "./tts";
 export { getInteractiveGrammarSegments } from "./grammar";
 export { renderSVGInfographic } from "./svg";
+export { playTone, closeAudioContext } from "./audio";

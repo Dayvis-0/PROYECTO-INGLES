@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import type { Calificacion } from "../types";
 import { saveStoredCalificaciones } from "../data";
 import { cleanCompare } from "../utils/cleaners";
+import { playTone } from "../utils/audio";
 import { useAppContext } from "../context/AppContext";
 
 /**
@@ -67,22 +68,7 @@ export function useWalkthrough() {
         "¡Vocabulario aprendido! Sigamos con la regla gramatical."
       );
     } else if (currentScreen.type === "gramatica") {
-      // Play a subtle chime
-      try {
-        const ctx = new (window.AudioContext ||
-          (window as any).webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        gain.gain.setValueAtTime(0.04, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.3);
-      } catch {
-        // Audio not available — silent
-      }
+      playTone(523.25, 0.04, 0.3);
 
       setFeedbackState("correct");
       setFeedbackMessage(

@@ -1,5 +1,6 @@
 import { speakWord } from "../../utils/tts";
 import { getInteractiveGrammarSegments } from "../../utils/grammar";
+import { playTone } from "../../utils/audio";
 import { useAppContext } from "../../context/AppContext";
 
 export default function GramaticaStep() {
@@ -52,18 +53,7 @@ export default function GramaticaStep() {
                 <span key={sIdx}
                   onMouseEnter={() => {
                     setActiveHoverGrammarWord(sIdx);
-                    try {
-                      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                      const osc = ctx.createOscillator();
-                      const gain = ctx.createGain();
-                      osc.frequency.setValueAtTime(420 + sIdx * 35, ctx.currentTime);
-                      osc.connect(gain);
-                      gain.connect(ctx.destination);
-                      gain.gain.setValueAtTime(0.012, ctx.currentTime);
-                      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-                      osc.start();
-                      osc.stop(ctx.currentTime + 0.05);
-                    } catch (_) {}
+                    playTone(420 + sIdx * 35, 0.012, 0.05);
                   }}
                   onClick={() => { setActiveHoverGrammarWord(sIdx); speakWord(seg.word); }}
                   className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors duration-150 ${
