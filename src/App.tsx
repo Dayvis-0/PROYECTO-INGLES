@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { 
   Award, 
   GraduationCap, 
@@ -29,9 +29,7 @@ import {
 } from "lucide-react";
 import { Leccion, Calificacion, EjercicioCalentamiento, PreguntaEvaluacion, VocabularioItem } from "./types";
 import { 
-  getStoredLessons, 
   saveStoredLessons, 
-  getStoredCalificaciones, 
   saveStoredCalificaciones,
   PRESENT_SIMPLE_SVG,
   PRESENT_CONTINUOUS_SVG
@@ -40,103 +38,51 @@ import { isWordSimilarityMatch } from "./utils/similarity";
 import { cleanCompare } from "./utils/cleaners";
 import { speakWord } from "./utils/tts";
 import { getInteractiveGrammarSegments } from "./utils/grammar";
+import { useAppContext } from "./context/AppContext";
 export default function App() {
-  // --- View and Routing State ---
-  const [currentView, setCurrentView] = useState<"welcome" | "login" | "docente" | "estudiante_home" | "estudiante_leccion">("welcome");
-  const [selectedRole, setSelectedRole] = useState<"STUDENT" | "TEACHER" | null>(null);
-  
-  // --- User State ---
-  const [usernameInput, setUsernameInput] = useState("");
-  const [passwordInput, setPasswordInput] = useState("");
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const {
+    currentView, setCurrentView, selectedRole, setSelectedRole,
+    usernameInput, setUsernameInput, passwordInput, setPasswordInput,
+    loginError, setLoginError, currentUser, setCurrentUser,
+    lessons, setLessons, calificaciones, setCalificaciones,
+    formTitulo, setFormTitulo, formImagenGramatica, setFormImagenGramatica,
+    formFormulaGramatica, setFormFormulaGramatica,
+    formFrasesPronunciacion, setFormFrasesPronunciacion,
+    formCalentamiento, setFormCalentamiento,
+    formEvaluacion, setFormEvaluacion,
+    editingLessonId, setEditingLessonId,
+    teacherFormError, setTeacherFormError,
+    teacherTab, setTeacherTab, expandedStudents, setExpandedStudents,
+    formEjemploOracion, setFormEjemploOracion,
+    formEjemploRoles, setFormEjemploRoles,
+    formVocabularioDetallado, setFormVocabularioDetallado,
+    walkthroughActive, setWalkthroughActive,
+    activeLesson, setActiveLesson,
+    flatScreens, setFlatScreens, flatScreenIndex, setFlatScreenIndex,
+    vistosVocabulario, setVistosVocabulario,
+    keyboardMode, setKeyboardMode,
+    userTypedTranslation, setUserTypedTranslation,
+    selectedBubbles, setSelectedBubbles,
+    scrambleBubbles, setScrambleBubbles,
+    activeHoverGrammarWord, setActiveHoverGrammarWord,
+    selectedExamOptionIndex, setSelectedExamOptionIndex,
+    feedbackState, setFeedbackState, feedbackMessage, setFeedbackMessage,
+    correctAnswerReveal, setCorrectAnswerReveal,
+    examCorrectCount, setExamCorrectCount,
+    isListeningVoice, setIsListeningVoice,
+    voiceTranscript, setVoiceTranscript,
+    voiceSimilarity, setVoiceSimilarity, speechError, setSpeechError,
+    gainedGrade, setGainedGrade, gainedCorrect, setGainedCorrect,
+  } = useAppContext();
 
-  // --- Database State (Reactive) ---
-  const [lessons, setLessons] = useState<Leccion[]>([]);
-  const [calificaciones, setCalificaciones] = useState<Calificacion[]>([]);
+  const recognitionRef = useRef<any>(null);
 
-  // Load from database on startup
+  // Prime the speech synthesis engine on mount
   useEffect(() => {
-    setLessons(getStoredLessons());
-    setCalificaciones(getStoredCalificaciones());
-    
-    // Warm up/prime the speech synthesis engine to avoid delayed load of voices returning empty representation
     if ("speechSynthesis" in window) {
       window.speechSynthesis.getVoices();
     }
   }, []);
-
-  // --- Teacher Form State (Dynamic) ---
-  const [formTitulo, setFormTitulo] = useState("");
-  const [formImagenGramatica, setFormImagenGramatica] = useState("present_simple.png");
-  const [formFormulaGramatica, setFormFormulaGramatica] = useState("");
-  const [formFrasesPronunciacion, setFormFrasesPronunciacion] = useState<string[]>([""]);
-  const [formCalentamiento, setFormCalentamiento] = useState<EjercicioCalentamiento[]>([
-    { fraseMetaEn: "", fraseMetaEs: "" }
-  ]);
-  const [formEvaluacion, setFormEvaluacion] = useState<PreguntaEvaluacion[]>([
-    {
-      pregunta: "",
-      opciones: [
-        { texto: "", correcta: true },
-        { texto: "", correcta: false },
-        { texto: "", correcta: false },
-        { texto: "", correcta: false }
-      ]
-    }
-  ]);
-  const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
-  const [teacherFormError, setTeacherFormError] = useState<string | null>(null);
-  const [teacherTab, setTeacherTab] = useState<"avance" | "notas">("avance");
-  const [expandedStudents, setExpandedStudents] = useState<Record<string, boolean>>({});
-
-  // New form states for lesson example sentence and detailed vocabulary
-  const [formEjemploOracion, setFormEjemploOracion] = useState("");
-  const [formEjemploRoles, setFormEjemploRoles] = useState<string[]>([]);
-  const [formVocabularioDetallado, setFormVocabularioDetallado] = useState<VocabularioItem[]>([]);
-
-  // --- Student Walkthrough State ---
-  const [walkthroughActive, setWalkthroughActive] = useState<boolean>(false);
-  const [activeLesson, setActiveLesson] = useState<Leccion | null>(null);
-  const [flatScreens, setFlatScreens] = useState<any[]>([]);
-  const [flatScreenIndex, setFlatScreenIndex] = useState<number>(0);
-  const [vistosVocabulario, setVistosVocabulario] = useState<string[]>([]);
-  
-  // Interactive Walkthrough States per Screen
-  const [keyboardMode, setKeyboardMode] = useState<boolean>(false);
-  const [userTypedTranslation, setUserTypedTranslation] = useState<string>("");
-  const [selectedBubbles, setSelectedBubbles] = useState<string[]>([]);
-  const [scrambleBubbles, setScrambleBubbles] = useState<string[]>([]);
-
-  // Interactive grammar hover states
-  const [activeHoverGrammarWord, setActiveHoverGrammarWord] = useState<number>(0);
-
-  // Helper determining the interactive segments breakdown for Step 2 corresponding to any lesson
-  // Selected option for exam question
-  
-  // Selected option for exam question
-  const [selectedExamOptionIndex, setSelectedExamOptionIndex] = useState<number | null>(null);
-
-  // Feedback banner state RNF01
-  const [feedbackState, setFeedbackState] = useState<"idle" | "correct" | "incorrect">("idle");
-  const [feedbackMessage, setFeedbackMessage] = useState<string>("");
-  const [correctAnswerReveal, setCorrectAnswerReveal] = useState<string>("");
-
-  // Score keeping
-  const [examCorrectCount, setExamCorrectCount] = useState<number>(0);
-  
-  // Speech Recognition State
-  const [isListeningVoice, setIsListeningVoice] = useState<boolean>(false);
-  const [voiceTranscript, setVoiceTranscript] = useState<string>("");
-  const [voiceSimilarity, setVoiceSimilarity] = useState<number | null>(null);
-  const [speechError, setSpeechError] = useState<string | null>(null);
-  const recognitionRef = useRef<any>(null);
-  
-  // Congratulations Screen State
-  
-  // Congratulations Screen State
-  const [gainedGrade, setGainedGrade] = useState<number | null>(null);
-  const [gainedCorrect, setGainedCorrect] = useState<number | null>(null);
 
   // Sound recognition using web Speech Recognition API
   const startVoiceRecording = (targetSentence: string) => {
