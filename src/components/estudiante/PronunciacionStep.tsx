@@ -1,84 +1,25 @@
-import { useRef } from "react";
 import { Volume2, Mic, MicOff } from "lucide-react";
 import { speakWord } from "../../utils/tts";
-import { isWordSimilarityMatch } from "../../utils/similarity";
 import { useAppContext } from "../../context/AppContext";
+import { useSpeechRecognition } from "../../hooks/useSpeechRecognition";
 
 export default function PronunciacionStep({ subIndex }: { subIndex: number }) {
   const {
     activeLesson,
-    isListeningVoice, setIsListeningVoice,
-    voiceTranscript, setVoiceTranscript,
-    voiceSimilarity, setVoiceSimilarity,
-    speechError, setSpeechError,
+    isListeningVoice,
+    voiceTranscript,
+    voiceSimilarity,
+    speechError,
   } = useAppContext();
 
-  const recognitionRef = useRef<any>(null);
+  const { startVoiceRecording } = useSpeechRecognition();
+
   if (!activeLesson) return null;
 
   const phrases = activeLesson.frasesPronunciacion && activeLesson.frasesPronunciacion.length > 0
     ? activeLesson.frasesPronunciacion
     : [activeLesson.calentamiento[0]?.fraseMetaEn || "English is practical and beautiful"];
   const speechTarget = phrases[subIndex] || "English is practical and beautiful";
-
-  const startVoiceRecording = (targetSentence: string) => {
-    if (recognitionRef.current) {
-      try { recognitionRef.current.abort(); } catch (err) { console.warn("Error aborting previous recognition:", err); }
-      recognitionRef.current = null;
-    }
-
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setSpeechError("La API de reconocimiento de voz no está soportada en tu navegador (usa Chrome, Edge o Safari). Iniciando práctica simulada para que continúes sin detenerte.");
-      setIsListeningVoice(true);
-      setTimeout(() => { setIsListeningVoice(false); setVoiceTranscript(targetSentence); setVoiceSimilarity(100); setSpeechError(null); }, 2000);
-      return;
-    }
-
-    try {
-      setSpeechError(null);
-      const rec = new SpeechRecognition();
-      rec.lang = "en-US";
-      rec.continuous = false;
-      rec.interimResults = false;
-      recognitionRef.current = rec;
-
-      rec.onstart = () => { setIsListeningVoice(true); setVoiceTranscript("Escuchando... ¡Habla ahora fuerte y claro en inglés!"); setVoiceSimilarity(null); };
-
-      rec.onresult = (event: any) => {
-        const transcriptText: string = event.results[0][0].transcript;
-        setVoiceTranscript(transcriptText);
-        const cleanStr = (s: string) => s.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").replace(/\s+/g, " ").trim();
-        const tWords = cleanStr(targetSentence).split(" ").filter(Boolean);
-        const rWords = cleanStr(transcriptText).split(" ").filter(Boolean);
-        let matchCount = 0;
-        tWords.forEach((tWord) => { const hasMatch = rWords.some((rWord) => isWordSimilarityMatch(tWord, rWord)); if (hasMatch) matchCount++; });
-        const pct = Math.round((matchCount / Math.max(tWords.length, rWords.length || 1)) * 100);
-        setVoiceSimilarity(Math.min(pct, 100));
-      };
-
-      rec.onerror = (err: any) => {
-        console.error("Speech Recognition Error", err);
-        if (err.error === "not-allowed") {
-          setSpeechError("El acceso al micrófono está restringido. Por favor, asegúrate de dar permisos en tu navegador ó haz clic en el botón 'Permitir'. Si estás en un iframe, abre en una ventana nueva.");
-        } else if (err.error === "no-speech") {
-          setSpeechError("No se detectó sonido. Intenta hablar más alto o verifica la conexión de tu micrófono.");
-        } else {
-          setSpeechError(`Error al acceder al micrófono (${err.error || "desconocido"}). Iniciando simulación automática.`);
-        }
-        setIsListeningVoice(true);
-        setTimeout(() => { setIsListeningVoice(false); setVoiceTranscript(targetSentence); setVoiceSimilarity(95); }, 1800);
-      };
-
-      rec.onend = () => { setIsListeningVoice(false); };
-      rec.start();
-    } catch (e) {
-      console.error(e);
-      setSpeechError("No se pudo conectar con el servicio de voz. Iniciando simulación.");
-      setIsListeningVoice(true);
-      setTimeout(() => { setIsListeningVoice(false); setVoiceTranscript(targetSentence); setVoiceSimilarity(95); }, 1500);
-    }
-  };
 
   return (
     <div className="space-y-4 text-center w-full">
