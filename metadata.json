@@ -1,0 +1,10 @@
+{
+  "name": "Plataforma de Ingles Manuel Vivanco Altamirano",
+  "description": "Sistema interactivo de aprendizaje de ingles inspirado en Duolingo para estudiantes de la I.E. Manuel Vivanco Altamirano de la UNAJMA.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
