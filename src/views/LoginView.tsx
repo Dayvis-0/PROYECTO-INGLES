@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 import { ChevronLeft, AlertCircle } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { VIEWS, ROLES } from "../constants";
 
 export default function LoginView() {
   const {
@@ -16,14 +17,14 @@ export default function LoginView() {
 
     const userClean = usernameInput.trim();
 
-    if (selectedRole === "STUDENT") {
+    if (selectedRole === ROLES.STUDENT) {
       const finalUsername = userClean || "hitsuko.student";
       setCurrentUser(finalUsername);
-      setCurrentView("estudiante_home");
-    } else if (selectedRole === "TEACHER") {
+      setCurrentView(VIEWS.ESTUDIANTE_HOME);
+    } else if (selectedRole === ROLES.TEACHER) {
       const finalUsername = userClean || "profesor.farfan";
       setCurrentUser(finalUsername);
-      setCurrentView("docente");
+      setCurrentView(VIEWS.DOCENTE);
     }
   };
 
@@ -36,7 +37,7 @@ export default function LoginView() {
             setUsernameInput("");
             setPasswordInput("");
             setLoginError(null);
-            setCurrentView("welcome");
+            setCurrentView(VIEWS.WELCOME);
           }}
           className="absolute top-6 left-6 text-gray-400 hover:text-gray-900 flex items-center gap-1 text-sm font-bold transition-colors cursor-pointer"
         >
@@ -48,7 +49,7 @@ export default function LoginView() {
             Ingreso al Portal
           </span>
           <h2 className="text-3xl font-black text-[#3c3c3c] mt-2">
-            Acceso {selectedRole === "STUDENT" ? "Estudiante" : "Docente"}
+            Acceso {selectedRole === ROLES.STUDENT ? "Estudiante" : "Docente"}
           </h2>
         </div>
 
@@ -62,7 +63,7 @@ export default function LoginView() {
               type="text"
               value={usernameInput}
               onChange={(e) => setUsernameInput(e.target.value)}
-              placeholder={selectedRole === "STUDENT" ? "Usuario de Estudiante" : "Usuario de Docente"}
+              placeholder={selectedRole === ROLES.STUDENT ? "Usuario de Estudiante" : "Usuario de Docente"}
               className="w-full px-4 py-3 border-2 border-[#e5e5e5] rounded-xl text-base font-bold text-[#3c3c3c] outline-none focus:border-sky-500 transition-colors"
             />
           </div>
@@ -90,7 +91,7 @@ export default function LoginView() {
           <button
             type="submit"
             className={`w-full py-4 font-black rounded-xl text-lg tracking-wider cursor-pointer ${
-              selectedRole === "STUDENT" ? "btn-3d-green" : "btn-3d-blue"
+              selectedRole === ROLES.STUDENT ? "btn-3d-green" : "btn-3d-blue"
             }`}
           >
             INGRESAR AHORA

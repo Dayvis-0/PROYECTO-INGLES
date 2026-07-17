@@ -1,24 +1,25 @@
 import { useEffect } from "react";
-import { AppProvider, useAppContext } from "./context/AppContext";
+import { useAppContext } from "./context/AppContext";
+import { VIEWS } from "./constants";
 import WelcomeView from "./views/WelcomeView";
 import LoginView from "./views/LoginView";
 import DocenteView from "./views/DocenteView";
 import EstudianteHomeView from "./views/EstudianteHomeView";
 import EstudianteLeccionView from "./views/EstudianteLeccionView";
 
+/**
+ * App — the top-level React tree.
+ * AppProvider is mounted in main.tsx, so this component only renders AppShell.
+ * The speech synthesis engine is primed once on mount to reduce latency later.
+ */
 export default function App() {
-  // Prime the speech synthesis engine on mount
   useEffect(() => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.getVoices();
     }
   }, []);
 
-  return (
-    <AppProvider>
-      <AppShell />
-    </AppProvider>
-  );
+  return <AppShell />;
 }
 
 function AppShell() {
@@ -37,17 +38,17 @@ function AppShell() {
     setUsernameInput("");
     setPasswordInput("");
     setSelectedRole(null);
-    setCurrentView("welcome");
+    setCurrentView(VIEWS.WELCOME);
     setWalkthroughActive(false);
   };
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-[#f7f7f7] text-[#3c3c3c]">
-      {currentView === "welcome" && <WelcomeView />}
-      {currentView === "login" && <LoginView />}
-      {currentView === "docente" && <DocenteView onLogout={handleLogout} />}
-      {currentView === "estudiante_home" && <EstudianteHomeView onLogout={handleLogout} />}
-      {currentView === "estudiante_leccion" && <EstudianteLeccionView />}
+      {currentView === VIEWS.WELCOME && <WelcomeView />}
+      {currentView === VIEWS.LOGIN && <LoginView />}
+      {currentView === VIEWS.DOCENTE && <DocenteView onLogout={handleLogout} />}
+      {currentView === VIEWS.ESTUDIANTE_HOME && <EstudianteHomeView onLogout={handleLogout} />}
+      {currentView === VIEWS.ESTUDIANTE_LECCION && <EstudianteLeccionView />}
     </div>
   );
 }

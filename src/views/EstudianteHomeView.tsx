@@ -1,5 +1,7 @@
 import { LogOut, AlertCircle, Check, GraduationCap, Award } from "lucide-react";
 import type { Leccion, Calificacion } from "../types";
+import type { WalkthroughScreen } from "../constants";
+import { VIEWS } from "../constants";
 import { useAppContext } from "../context/AppContext";
 
 interface Props {
@@ -33,7 +35,7 @@ export default function EstudianteHomeView({ onLogout }: Props) {
   const launchActiveLesson = (leccion: Leccion) => {
     setActiveLesson(leccion);
 
-    const screens: any[] = [];
+    const screens: WalkthroughScreen[] = [];
     screens.push({ type: "vocabulario" });
     screens.push({ type: "gramatica" });
 
@@ -56,23 +58,53 @@ export default function EstudianteHomeView({ onLogout }: Props) {
 
     setFlatScreens(screens);
     setFlatScreenIndex(0);
-    setVistosVocabulario([]);
-    setExamCorrectCount(0);
-    setFeedbackState("idle");
-    setFeedbackMessage("");
-    setCorrectAnswerReveal("");
-    setUserTypedTranslation("");
-    setSelectedBubbles([]);
-    setVoiceSimilarity(null);
-    setVoiceTranscript("");
-    setSelectedExamOptionIndex(null);
-    setGainedGrade(null);
+    resetWalkthroughState({
+      setVistosVocabulario,
+      setExamCorrectCount,
+      setFeedbackState,
+      setFeedbackMessage,
+      setCorrectAnswerReveal,
+      setUserTypedTranslation,
+      setSelectedBubbles,
+      setVoiceSimilarity,
+      setVoiceTranscript,
+      setSelectedExamOptionIndex,
+      setGainedGrade,
+    });
     setWalkthroughActive(true);
-    setCurrentView("estudiante_leccion");
+    setCurrentView(VIEWS.ESTUDIANTE_LECCION);
 
     if (leccion.formulaGramatica) {
       setActiveHoverGrammarWord(0);
     }
+  };
+
+  function resetWalkthroughState(s: ResetWalkthroughParams) {
+    s.setVistosVocabulario([]);
+    s.setExamCorrectCount(0);
+    s.setFeedbackState("idle");
+    s.setFeedbackMessage("");
+    s.setCorrectAnswerReveal("");
+    s.setUserTypedTranslation("");
+    s.setSelectedBubbles([]);
+    s.setVoiceSimilarity(null);
+    s.setVoiceTranscript("");
+    s.setSelectedExamOptionIndex(null);
+    s.setGainedGrade(null);
+  }
+
+  type ResetWalkthroughParams = {
+    setVistosVocabulario: (v: string[]) => void;
+    setExamCorrectCount: (n: number | ((prev: number) => number)) => void;
+    setFeedbackState: (f: "idle" | "correct" | "incorrect") => void;
+    setFeedbackMessage: (s: string) => void;
+    setCorrectAnswerReveal: (s: string) => void;
+    setUserTypedTranslation: (s: string) => void;
+    setSelectedBubbles: (s: string[]) => void;
+    setVoiceSimilarity: (n: number | null) => void;
+    setVoiceTranscript: (s: string) => void;
+    setSelectedExamOptionIndex: (n: number | null) => void;
+    setGainedGrade: (n: number | null) => void;
   };
 
   return (
@@ -178,7 +210,7 @@ export default function EstudianteHomeView({ onLogout }: Props) {
                       hasCompleted ? "btn-3d-blue" : "btn-3d-green"
                     }`}
                   >
-                    {hasCompleted ? "COMPLETADO" : "EMPEZAR LECCIÓN"}
+                    {hasCompleted ? "REPETIR LECCIÓN" : "EMPEZAR LECCIÓN"}
                   </button>
                 </div>
               </div>

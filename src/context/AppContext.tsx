@@ -12,21 +12,17 @@ import type {
   PreguntaEvaluacion,
   VocabularioItem,
 } from "../types";
+import type {
+  ViewType,
+  RoleType,
+  FeedbackType,
+  WalkthroughScreen,
+} from "../constants";
+import { VIEWS, ROLES } from "../constants";
 import {
   getStoredLessons,
   getStoredCalificaciones,
 } from "../data";
-
-// ─── Type Helpers ────────────────────────────────────────
-type ViewType =
-  | "welcome"
-  | "login"
-  | "docente"
-  | "estudiante_home"
-  | "estudiante_leccion";
-
-type RoleType = "STUDENT" | "TEACHER" | null;
-type FeedbackType = "idle" | "correct" | "incorrect";
 
 // ─── State shape (internal) ──────────────────────────────
 interface AppState {
@@ -58,7 +54,7 @@ interface AppState {
   // Student Walkthrough
   walkthroughActive: boolean;
   activeLesson: Leccion | null;
-  flatScreens: any[];
+  flatScreens: WalkthroughScreen[];
   flatScreenIndex: number;
   vistosVocabulario: string[];
   keyboardMode: boolean;
@@ -84,7 +80,7 @@ interface AppState {
 // ─── Initial state ────────────────────────────────────────
 const initialState: AppState = {
   // View & Routing
-  currentView: "welcome",
+  currentView: VIEWS.WELCOME,
   selectedRole: null,
   // Auth
   usernameInput: "",
@@ -352,8 +348,8 @@ interface AppContextType {
   setWalkthroughActive: (b: boolean) => void;
   activeLesson: Leccion | null;
   setActiveLesson: (l: Leccion | null) => void;
-  flatScreens: any[];
-  setFlatScreens: (s: any[]) => void;
+  flatScreens: WalkthroughScreen[];
+  setFlatScreens: (s: WalkthroughScreen[]) => void;
   flatScreenIndex: number;
   setFlatScreenIndex: (n: number) => void;
   vistosVocabulario: string[];

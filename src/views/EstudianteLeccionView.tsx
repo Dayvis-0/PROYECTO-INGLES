@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { VIEWS } from "../constants";
 import { useWalkthrough } from "../hooks/useWalkthrough";
 import { ProgressBar, FeedbackBanner, ModalConfirm } from "../components/ui";
 import {
@@ -23,7 +24,6 @@ export default function EstudianteLeccionView() {
     feedbackMessage,
     correctAnswerReveal,
     gainedGrade,
-    gainedCorrect,
     setWalkthroughActive,
     setCurrentView,
   } = useAppContext();
@@ -159,7 +159,7 @@ export default function EstudianteLeccionView() {
         onConfirm={() => {
           setShowExitConfirm(false);
           setWalkthroughActive(false);
-          setCurrentView("estudiante_home");
+          setCurrentView(VIEWS.ESTUDIANTE_HOME);
         }}
         onCancel={() => setShowExitConfirm(false)}
       />

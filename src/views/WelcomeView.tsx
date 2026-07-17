@@ -1,5 +1,6 @@
 import { Sparkles, Users, GraduationCap } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { VIEWS, ROLES } from "../constants";
 
 export default function WelcomeView() {
   const { setSelectedRole, setCurrentView } = useAppContext();
@@ -22,8 +23,8 @@ export default function WelcomeView() {
           <button
             id="btn-role-student"
             onClick={() => {
-              setSelectedRole("STUDENT");
-              setCurrentView("login");
+              setSelectedRole(ROLES.STUDENT);
+              setCurrentView(VIEWS.LOGIN);
             }}
             className="w-full sm:w-64 py-5 px-8 text-xl font-black rounded-2xl btn-3d-green tracking-wide cursor-pointer flex flex-col items-center gap-2"
           >
@@ -34,8 +35,8 @@ export default function WelcomeView() {
           <button
             id="btn-role-teacher"
             onClick={() => {
-              setSelectedRole("TEACHER");
-              setCurrentView("login");
+              setSelectedRole(ROLES.TEACHER);
+              setCurrentView(VIEWS.LOGIN);
             }}
             className="w-full sm:w-64 py-5 px-8 text-xl font-black rounded-2xl btn-3d-blue tracking-wide cursor-pointer flex flex-col items-center gap-2"
           >

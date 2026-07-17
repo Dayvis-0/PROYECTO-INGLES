@@ -1,5 +1,6 @@
 import { Award, AlertCircle } from "lucide-react";
 import { useAppContext } from "../../context/AppContext";
+import { VIEWS } from "../../constants";
 
 interface Props {
   activeLessonTitle: string;
@@ -30,11 +31,27 @@ export default function GradeResult({ activeLessonTitle, totalExamQuestions }: P
   if (gainedGrade === null) return null;
   const isApproved = gainedGrade >= 15;
 
+  function resetWalkthrough() {
+    setFlatScreenIndex(0);
+    setVistosVocabulario([]);
+    setExamCorrectCount(0);
+    setGainedGrade(null);
+    setGainedCorrect(0);
+    setFeedbackState("idle");
+    setFeedbackMessage("");
+    setCorrectAnswerReveal("");
+    setUserTypedTranslation("");
+    setSelectedBubbles([]);
+    setVoiceSimilarity(null);
+    setVoiceTranscript("");
+    setSelectedExamOptionIndex(null);
+  }
+
   return (
     <div className="text-center py-10 px-6 space-y-6 my-auto max-w-3xl mx-auto">
       {isApproved ? (
         <>
-          <div className="inline-flex justify-center items-center w-24 h-24 bg-yellow-105 bg-yellow-100 rounded-full text-yellow-500 animate-bounce shadow-sm border border-yellow-200">
+          <div className="inline-flex justify-center items-center w-24 h-24 bg-yellow-100 rounded-full text-yellow-500 animate-bounce shadow-sm border border-yellow-200">
             <Award className="w-14 h-14" />
           </div>
           <div className="space-y-2">
@@ -79,7 +96,7 @@ export default function GradeResult({ activeLessonTitle, totalExamQuestions }: P
 
       <div className="pt-6">
         {isApproved ? (
-          <button onClick={() => { setWalkthroughActive(false); setCurrentView("estudiante_home"); }}
+          <button onClick={() => { setWalkthroughActive(false); setCurrentView(VIEWS.ESTUDIANTE_HOME); }}
             className="py-4 px-12 text-lg font-black tracking-wider uppercase rounded-xl btn-3d-green w-64 cursor-pointer"
           >
             CONCLUIR LECCIÓN
@@ -89,21 +106,7 @@ export default function GradeResult({ activeLessonTitle, totalExamQuestions }: P
             <p className="text-xs md:text-sm text-rose-500 font-bold max-w-md mx-auto">
               Iniciaremos la lección de nuevo desde vocabulario para ayudarte a dominar las frases.
             </p>
-            <button onClick={() => {
-              setFlatScreenIndex(0);
-              setVistosVocabulario([]);
-              setExamCorrectCount(0);
-              setGainedGrade(null);
-              setGainedCorrect(0);
-              setFeedbackState("idle");
-              setFeedbackMessage("");
-              setCorrectAnswerReveal("");
-              setUserTypedTranslation("");
-              setSelectedBubbles([]);
-              setVoiceSimilarity(null);
-              setVoiceTranscript("");
-              setSelectedExamOptionIndex(null);
-            }}
+            <button onClick={resetWalkthrough}
               className="py-4 px-8 text-sm md:text-base font-black tracking-wider uppercase rounded-xl bg-orange-500 hover:bg-orange-600 border-b-4 border-orange-700 text-white shadow-md w-72 cursor-pointer active:scale-95 transition-transform"
             >
               🔄 REINICIAR DESDE VOCABULARIO

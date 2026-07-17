@@ -3,6 +3,7 @@ import type { Calificacion } from "../types";
 import { saveStoredCalificaciones } from "../data";
 import { cleanCompare } from "../utils/cleaners";
 import { playTone } from "../utils/audio";
+import { VIEWS } from "../constants";
 import { useAppContext } from "../context/AppContext";
 
 /**
@@ -26,20 +27,15 @@ export function useWalkthrough() {
     setSelectedExamOptionIndex,
     setFeedbackState,
     setFeedbackMessage,
-    correctAnswerReveal,
     setCorrectAnswerReveal,
     examCorrectCount,
     setExamCorrectCount,
     setVoiceTranscript,
-    gainedGrade,
     setGainedGrade,
-    gainedCorrect,
     setGainedCorrect,
     currentUser,
     calificaciones,
     setCalificaciones,
-    setWalkthroughActive,
-    setCurrentView,
     setActiveHoverGrammarWord,
     setScrambleBubbles,
     activeLesson,
@@ -279,8 +275,6 @@ export function useWalkthrough() {
     examCorrectCount,
     currentUser,
     calificaciones,
-    gainedGrade,
-    gainedCorrect,
     setFeedbackState,
     setFeedbackMessage,
     setCorrectAnswerReveal,
@@ -295,8 +289,6 @@ export function useWalkthrough() {
     setCalificaciones,
     setGainedGrade,
     setGainedCorrect,
-    setWalkthroughActive,
-    setCurrentView,
   ]);
 
   return {
