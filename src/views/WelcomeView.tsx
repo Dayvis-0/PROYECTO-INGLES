@@ -1,9 +1,11 @@
 import { Sparkles, Users, GraduationCap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
-import { VIEWS, ROLES } from "../constants";
+import { ROLES } from "../constants";
 
 export default function WelcomeView() {
-  const { setSelectedRole, setCurrentView } = useAppContext();
+  const { setSelectedRole } = useAppContext();
+  const navigate = useNavigate();
 
   return (
     <main className="flex-1 flex flex-col items-center justify-center p-4">
@@ -24,7 +26,7 @@ export default function WelcomeView() {
             id="btn-role-student"
             onClick={() => {
               setSelectedRole(ROLES.STUDENT);
-              setCurrentView(VIEWS.LOGIN);
+              navigate("/login");
             }}
             className="w-full sm:w-64 py-5 px-8 text-xl font-black rounded-2xl btn-3d-green tracking-wide cursor-pointer flex flex-col items-center gap-2"
           >
@@ -36,7 +38,7 @@ export default function WelcomeView() {
             id="btn-role-teacher"
             onClick={() => {
               setSelectedRole(ROLES.TEACHER);
-              setCurrentView(VIEWS.LOGIN);
+              navigate("/login");
             }}
             className="w-full sm:w-64 py-5 px-8 text-xl font-black rounded-2xl btn-3d-blue tracking-wide cursor-pointer flex flex-col items-center gap-2"
           >

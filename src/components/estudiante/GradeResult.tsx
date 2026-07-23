@@ -1,6 +1,6 @@
 import { Award, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
-import { VIEWS } from "../../constants";
 
 interface Props {
   activeLessonTitle: string;
@@ -8,11 +8,12 @@ interface Props {
 }
 
 export default function GradeResult({ activeLessonTitle, totalExamQuestions }: Props) {
+  const navigate = useNavigate();
+
   const {
     gainedGrade,
     gainedCorrect,
     setWalkthroughActive,
-    setCurrentView,
     setFlatScreenIndex,
     setVistosVocabulario,
     setExamCorrectCount,
@@ -96,7 +97,7 @@ export default function GradeResult({ activeLessonTitle, totalExamQuestions }: P
 
       <div className="pt-6">
         {isApproved ? (
-          <button onClick={() => { setWalkthroughActive(false); setCurrentView(VIEWS.ESTUDIANTE_HOME); }}
+          <button onClick={() => { setWalkthroughActive(false); navigate("/estudiante"); }}
             className="py-4 px-12 text-lg font-black tracking-wider uppercase rounded-xl btn-3d-green w-64 cursor-pointer"
           >
             CONCLUIR LECCIÓN

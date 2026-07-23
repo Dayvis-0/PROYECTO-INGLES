@@ -1,6 +1,6 @@
 import { useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useAppContext } from "./context/AppContext";
-import { VIEWS } from "./constants";
 import WelcomeView from "./views/WelcomeView";
 import LoginView from "./views/LoginView";
 import DocenteView from "./views/DocenteView";
@@ -24,31 +24,33 @@ export default function App() {
 
 function AppShell() {
   const {
-    currentView,
     setCurrentUser,
     setUsernameInput,
     setPasswordInput,
     setSelectedRole,
-    setCurrentView,
     setWalkthroughActive,
   } = useAppContext();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     setCurrentUser(null);
     setUsernameInput("");
     setPasswordInput("");
     setSelectedRole(null);
-    setCurrentView(VIEWS.WELCOME);
     setWalkthroughActive(false);
+    navigate("/");
   };
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-[#f7f7f7] text-[#3c3c3c]">
-      {currentView === VIEWS.WELCOME && <WelcomeView />}
-      {currentView === VIEWS.LOGIN && <LoginView />}
-      {currentView === VIEWS.DOCENTE && <DocenteView onLogout={handleLogout} />}
-      {currentView === VIEWS.ESTUDIANTE_HOME && <EstudianteHomeView onLogout={handleLogout} />}
-      {currentView === VIEWS.ESTUDIANTE_LECCION && <EstudianteLeccionView />}
+      <Routes>
+        <Route path="/" element={<WelcomeView />} />
+        <Route path="/login" element={<LoginView />} />
+        <Route path="/docente" element={<DocenteView onLogout={handleLogout} />} />
+        <Route path="/estudiante" element={<EstudianteHomeView onLogout={handleLogout} />} />
+        <Route path="/estudiante/leccion/:id" element={<EstudianteLeccionView />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }

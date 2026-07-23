@@ -1,15 +1,17 @@
 import type { FormEvent } from "react";
 import { ChevronLeft, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
-import { VIEWS, ROLES } from "../constants";
+import { ROLES } from "../constants";
 
 export default function LoginView() {
   const {
     usernameInput, setUsernameInput,
     passwordInput, setPasswordInput,
     loginError, setLoginError,
-    selectedRole, setCurrentUser, setCurrentView,
+    selectedRole, setCurrentUser,
   } = useAppContext();
+  const navigate = useNavigate();
 
   const handleLoginSubmit = (e?: FormEvent) => {
     if (e) e.preventDefault();
@@ -20,11 +22,11 @@ export default function LoginView() {
     if (selectedRole === ROLES.STUDENT) {
       const finalUsername = userClean || "hitsuko.student";
       setCurrentUser(finalUsername);
-      setCurrentView(VIEWS.ESTUDIANTE_HOME);
+      navigate("/estudiante");
     } else if (selectedRole === ROLES.TEACHER) {
       const finalUsername = userClean || "profesor.farfan";
       setCurrentUser(finalUsername);
-      setCurrentView(VIEWS.DOCENTE);
+      navigate("/docente");
     }
   };
 
@@ -37,7 +39,7 @@ export default function LoginView() {
             setUsernameInput("");
             setPasswordInput("");
             setLoginError(null);
-            setCurrentView(VIEWS.WELCOME);
+            navigate("/");
           }}
           className="absolute top-6 left-6 text-gray-400 hover:text-gray-900 flex items-center gap-1 text-sm font-bold transition-colors cursor-pointer"
         >

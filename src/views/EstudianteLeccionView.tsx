@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
-import { VIEWS } from "../constants";
 import { useWalkthrough } from "../hooks/useWalkthrough";
 import { ProgressBar, FeedbackBanner, ModalConfirm } from "../components/ui";
 import {
@@ -25,8 +25,8 @@ export default function EstudianteLeccionView() {
     correctAnswerReveal,
     gainedGrade,
     setWalkthroughActive,
-    setCurrentView,
   } = useAppContext();
+  const navigate = useNavigate();
 
   const { handleCheckAnswer, handleContinueWalkthrough } = useWalkthrough();
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -159,7 +159,7 @@ export default function EstudianteLeccionView() {
         onConfirm={() => {
           setShowExitConfirm(false);
           setWalkthroughActive(false);
-          setCurrentView(VIEWS.ESTUDIANTE_HOME);
+          navigate("/estudiante");
         }}
         onCancel={() => setShowExitConfirm(false)}
       />

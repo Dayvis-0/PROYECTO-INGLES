@@ -1,7 +1,7 @@
 import { LogOut, AlertCircle, Check, GraduationCap, Award } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { Leccion, Calificacion } from "../types";
 import type { WalkthroughScreen } from "../constants";
-import { VIEWS } from "../constants";
 import { useAppContext } from "../context/AppContext";
 
 interface Props {
@@ -28,9 +28,9 @@ export default function EstudianteHomeView({ onLogout }: Props) {
     setSelectedExamOptionIndex,
     setGainedGrade,
     setWalkthroughActive,
-    setCurrentView,
     setActiveHoverGrammarWord,
   } = useAppContext();
+  const navigate = useNavigate();
 
   const launchActiveLesson = (leccion: Leccion) => {
     setActiveLesson(leccion);
@@ -72,7 +72,7 @@ export default function EstudianteHomeView({ onLogout }: Props) {
       setGainedGrade,
     });
     setWalkthroughActive(true);
-    setCurrentView(VIEWS.ESTUDIANTE_LECCION);
+    navigate(`/estudiante/leccion/${leccion.id}`);
 
     if (leccion.formulaGramatica) {
       setActiveHoverGrammarWord(0);
