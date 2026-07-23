@@ -6,6 +6,7 @@ import LoginView from "./views/LoginView";
 import DocenteView from "./views/DocenteView";
 import EstudianteHomeView from "./views/EstudianteHomeView";
 import EstudianteLeccionView from "./views/EstudianteLeccionView";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 /**
  * App — the top-level React tree.
@@ -46,9 +47,9 @@ function AppShell() {
       <Routes>
         <Route path="/" element={<WelcomeView />} />
         <Route path="/login" element={<LoginView />} />
-        <Route path="/docente" element={<DocenteView onLogout={handleLogout} />} />
-        <Route path="/estudiante" element={<EstudianteHomeView onLogout={handleLogout} />} />
-        <Route path="/estudiante/leccion/:id" element={<EstudianteLeccionView />} />
+        <Route path="/docente" element={<ProtectedRoute><DocenteView onLogout={handleLogout} /></ProtectedRoute>} />
+        <Route path="/estudiante" element={<ProtectedRoute><EstudianteHomeView onLogout={handleLogout} /></ProtectedRoute>} />
+        <Route path="/estudiante/leccion/:id" element={<ProtectedRoute><EstudianteLeccionView /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
