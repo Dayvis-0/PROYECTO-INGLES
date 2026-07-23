@@ -28,7 +28,6 @@ function AppShell() {
     setCurrentUser,
     setUsernameInput,
     setPasswordInput,
-    setSelectedRole,
     setWalkthroughActive,
   } = useAppContext();
   const navigate = useNavigate();
@@ -37,7 +36,6 @@ function AppShell() {
     setCurrentUser(null);
     setUsernameInput("");
     setPasswordInput("");
-    setSelectedRole(null);
     setWalkthroughActive(false);
     navigate("/");
   };

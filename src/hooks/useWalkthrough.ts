@@ -3,7 +3,6 @@ import type { Calificacion } from "../types";
 import { saveStoredCalificaciones } from "../data";
 import { cleanCompare } from "../utils/cleaners";
 import { playTone } from "../utils/audio";
-import { VIEWS } from "../constants";
 import { useAppContext } from "../context/AppContext";
 
 /**

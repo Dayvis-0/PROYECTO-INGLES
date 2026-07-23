@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import { ChevronLeft, AlertCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { ROLES } from "../constants";
 
@@ -9,9 +9,11 @@ export default function LoginView() {
     usernameInput, setUsernameInput,
     passwordInput, setPasswordInput,
     loginError, setLoginError,
-    selectedRole, setCurrentUser,
+    setCurrentUser,
   } = useAppContext();
   const navigate = useNavigate();
+  const location = useLocation();
+  const selectedRole = (location.state as { role?: string })?.role || ROLES.STUDENT;
 
   const handleLoginSubmit = (e?: FormEvent) => {
     if (e) e.preventDefault();

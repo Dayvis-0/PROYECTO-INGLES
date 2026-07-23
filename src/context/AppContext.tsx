@@ -13,12 +13,9 @@ import type {
   VocabularioItem,
 } from "../types";
 import type {
-  ViewType,
-  RoleType,
   FeedbackType,
   WalkthroughScreen,
 } from "../constants";
-import { VIEWS, ROLES } from "../constants";
 import {
   getStoredLessons,
   getStoredCalificaciones,
@@ -26,9 +23,6 @@ import {
 
 // ─── State shape (internal) ──────────────────────────────
 interface AppState {
-  // View & Routing
-  currentView: ViewType;
-  selectedRole: RoleType;
   // Auth
   usernameInput: string;
   passwordInput: string;
@@ -79,9 +73,6 @@ interface AppState {
 
 // ─── Initial state ────────────────────────────────────────
 const initialState: AppState = {
-  // View & Routing
-  currentView: VIEWS.WELCOME,
-  selectedRole: null,
   // Auth
   usernameInput: "",
   passwordInput: "",
@@ -142,8 +133,6 @@ const initialState: AppState = {
 
 // ─── Actions ──────────────────────────────────────────────
 type AppAction =
-  | { type: "SET_CURRENT_VIEW"; payload: ViewType }
-  | { type: "SET_SELECTED_ROLE"; payload: RoleType }
   | { type: "SET_USERNAME_INPUT"; payload: string }
   | { type: "SET_PASSWORD_INPUT"; payload: string }
   | { type: "SET_LOGIN_ERROR"; payload: string | null }
@@ -188,10 +177,6 @@ type AppAction =
 // ─── Reducer ──────────────────────────────────────────────
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
-    case "SET_CURRENT_VIEW":
-      return { ...state, currentView: action.payload };
-    case "SET_SELECTED_ROLE":
-      return { ...state, selectedRole: action.payload };
     case "SET_USERNAME_INPUT":
       return { ...state, usernameInput: action.payload };
     case "SET_PASSWORD_INPUT":
@@ -291,12 +276,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
 // ─── Context Type (PUBLIC interface — unchanged) ─────────
 interface AppContextType {
-  // View & Routing
-  currentView: ViewType;
-  setCurrentView: (v: ViewType) => void;
-  selectedRole: RoleType;
-  setSelectedRole: (r: RoleType) => void;
-
   // Auth
   usernameInput: string;
   setUsernameInput: (s: string) => void;
@@ -416,12 +395,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Wrapper setters (keep the same public API) ──
   const value: AppContextType = {
-    // View & Routing
-    currentView: state.currentView,
-    setCurrentView: (v) => dispatch({ type: "SET_CURRENT_VIEW", payload: v }),
-    selectedRole: state.selectedRole,
-    setSelectedRole: (r) => dispatch({ type: "SET_SELECTED_ROLE", payload: r }),
-
     // Auth
     usernameInput: state.usernameInput,
     setUsernameInput: (s) => dispatch({ type: "SET_USERNAME_INPUT", payload: s }),
