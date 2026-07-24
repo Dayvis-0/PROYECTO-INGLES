@@ -17,83 +17,86 @@ export default function GramaticaStep() {
   const grammarDesc = activeLesson.gramaticaDesc || DEFAULT_GRAMATICA_DESC;
 
   return (
-    <div className="flex flex-col items-center gap-8 w-full max-w-md mx-auto">
+    <div className="flex flex-col items-center gap-4 w-full max-w-5xl mx-auto px-2 md:px-4">
       {/* ── Step eyebrow + title block ── */}
-      <div className="text-center space-y-3">
+      <div className="text-center space-y-1">
         <span className="text-xs md:text-sm font-black uppercase tracking-[0.12em] text-[#7ab8d6] block">
           TEORÍA Y FÓRMULA INTEGRADA
         </span>
         <div>
-          <h1 className="text-[32px] font-semibold text-[#1a1a2e] leading-tight">
+          <h1 className="text-2xl md:text-[32px] font-semibold text-[#1a1a2e] leading-tight">
             Visualiza la Estructura Formal
           </h1>
-          <p className="text-sm text-[#888] mt-1.5">
+          <p className="text-xs md:text-sm text-[#888] mt-1">
             Asocia la imagen teórica con la fórmula estructurada a continuación.
           </p>
         </div>
       </div>
 
-      {/* ── Grammar Card (blue gradient) ── */}
-      <div
-        className="w-full max-w-[420px] rounded-[18px] p-6 text-white"
-        style={{
-          background: "linear-gradient(135deg, #1a8fe3 0%, #0d6bbf 60%, #0a55a0 100%)",
-          boxShadow: "0 8px 32px rgba(13, 107, 191, 0.28)",
-        }}
-      >
-        <div className="text-lg font-extrabold tracking-wide">
-          Grammar Guide: {grammarTitle}
-        </div>
-        <div className="text-xs text-white/75 mb-5">{grammarDesc}</div>
-
-        {/* Three columns — dynamic from lesson data */}
-        <div className="grid grid-cols-3 gap-2.5">
-          {(activeLesson.gramaticaColumnas || DEFAULT_GRAMATICA_COLUMNAS).map((col, i) => (
-            <div key={i}
-              className={`${
-                i === 2
-                  ? "bg-white/12 rounded-[10px] px-2.5 py-3.5 text-center flex flex-col items-center justify-center gap-2"
-                  : "bg-white/12 rounded-[10px] px-2.5 py-3.5 text-center"
-              }`}
-            >
-              <div className="text-[11px] text-white/70 leading-tight mb-2.5">{col.titulo}</div>
-
-              {i === 2 ? (
-                <div className="bg-[#0d5fa0] border border-white/30 rounded-md px-2.5 py-1.5 text-[11px] font-bold text-[#ffe44d] tracking-wide text-center leading-tight">
-                  {col.verbo}
-                </div>
-              ) : (
-                <div className={`text-[22px] font-extrabold tracking-wide ${i === 0 ? "text-[#4dff6e]" : "text-[#ffe44d]"}`}>
-                  {col.verbo}
-                </div>
-              )}
-
-              <div className={`text-[10px] text-white/65 ${i === 2 ? "" : "mt-1.5"} leading-relaxed whitespace-pre-line`}>{col.nota}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Formula section (dark box, cyan border) ── */}
-      <div className="w-full max-w-[420px]">
-        <div className="text-[10px] font-black uppercase tracking-[0.1em] text-[#aab8c8] text-center mb-2.5 select-none">
-          FÓRMULA GRAMATICAL ESTRUCTURADA (RELACIÓN VISUAL)
-        </div>
+      {/* ── Card + Formula side by side on desktop ── */}
+      <div className="flex flex-col md:flex-row items-stretch gap-4 md:gap-6 w-full justify-center">
+        {/* ── Grammar Card (blue gradient) ── */}
         <div
-          className="bg-[#0e1726] border-2 border-[#22d3ee] rounded-xl px-7 py-5 text-center"
-          onClick={() => {
-            playTone(523.25, 0.04, 0.3);
+          className="w-full md:w-[420px] rounded-[18px] p-5 md:p-6 text-white shrink-0"
+          style={{
+            background: "linear-gradient(135deg, #1a8fe3 0%, #0d6bbf 60%, #0a55a0 100%)",
+            boxShadow: "0 8px 32px rgba(13, 107, 191, 0.28)",
           }}
         >
-          <div className="text-[22px] font-bold text-[#22d3ee] leading-relaxed tracking-wide">
-            {activeLesson.formulaGramatica}
+          <div className="text-base md:text-lg font-extrabold tracking-wide">
+            Grammar Guide: {grammarTitle}
+          </div>
+          <div className="text-[10px] md:text-xs text-white/75 mb-4">{grammarDesc}</div>
+
+          {/* Three columns — dynamic from lesson data */}
+          <div className="grid grid-cols-3 gap-2">
+            {(activeLesson.gramaticaColumnas || DEFAULT_GRAMATICA_COLUMNAS).map((col, i) => (
+              <div key={i}
+                className={`${
+                  i === 2
+                    ? "bg-white/12 rounded-[10px] px-2 py-3 text-center flex flex-col items-center justify-center gap-1.5"
+                    : "bg-white/12 rounded-[10px] px-2 py-3 text-center"
+                }`}
+              >
+                <div className="text-[10px] md:text-[11px] text-white/70 leading-tight mb-2">{col.titulo}</div>
+
+                {i === 2 ? (
+                  <div className="bg-[#0d5fa0] border border-white/30 rounded-md px-2 py-1 text-[10px] md:text-[11px] font-bold text-[#ffe44d] tracking-wide text-center leading-tight">
+                    {col.verbo}
+                  </div>
+                ) : (
+                  <div className={`text-lg md:text-[22px] font-extrabold tracking-wide ${i === 0 ? "text-[#4dff6e]" : "text-[#ffe44d]"}`}>
+                    {col.verbo}
+                  </div>
+                )}
+
+                <div className={`text-[9px] md:text-[10px] text-white/65 ${i === 2 ? "" : "mt-1"} leading-relaxed whitespace-pre-line`}>{col.nota}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Formula section (dark box, cyan border) ── */}
+        <div className="w-full md:w-[280px] flex flex-col justify-center">
+          <div className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.1em] text-[#aab8c8] text-center mb-2 select-none">
+            FÓRMULA GRAMATICAL ESTRUCTURADA (RELACIÓN VISUAL)
+          </div>
+          <div
+            className="bg-[#0e1726] border-2 border-[#22d3ee] rounded-xl px-5 py-4 md:px-7 md:py-5 text-center"
+            onClick={() => {
+              playTone(523.25, 0.04, 0.3);
+            }}
+          >
+            <div className="text-lg md:text-[22px] font-bold text-[#22d3ee] leading-relaxed tracking-wide">
+              {activeLesson.formulaGramatica}
+            </div>
           </div>
         </div>
       </div>
 
       {/* ── Interactive segments (enhancement) ── */}
       {segments.length > 0 && (
-        <div className="w-full max-w-[420px] bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+        <div className="w-full max-w-[750px] bg-white border border-slate-200 rounded-xl p-4 md:p-5 shadow-sm space-y-3">
           <span className="block text-[9px] uppercase font-black tracking-widest text-[#1cb0f6] text-center select-none">
             EJEMPLO PRÁCTICO INTERACTIVO
           </span>

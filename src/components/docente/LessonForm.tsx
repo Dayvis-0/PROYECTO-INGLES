@@ -1,10 +1,66 @@
 import { useState, type ReactNode } from "react";
 import { Plus, Trash2, AlertCircle, RotateCcw, ChevronDown, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import type { EjercicioCalentamiento, PreguntaEvaluacion } from "../../types";
 import { useAppContext } from "../../context/AppContext";
 import { useTeacherForm } from "../../hooks/useTeacherForm";
 import VocabTable from "./VocabTable";
 import GrammarExampleSection from "./GrammarExampleSection";
+
+// ── Section Accordion ──────────────────────────────────────────
+function SectionAccordion({
+  number,
+  title,
+  defaultOpen = false,
+  children,
+}: {
+  number: string;
+  title: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between bg-sky-50/60 p-4 md:p-5 rounded-2xl border-2 border-sky-100 hover:border-sky-200 hover:bg-sky-50 transition-all cursor-pointer text-left group"
+      >
+        <span className="text-xl font-extrabold text-[#1cb0f6]">
+          {number}. {title}
+        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs text-sky-400 font-bold uppercase tracking-wider">
+            {open ? "Cerrar" : "Abrir"}
+          </span>
+          <ChevronDown
+            className={`w-6 h-6 text-sky-400 transition-transform duration-200 ${
+              open ? "rotate-0" : "-rotate-90"
+            }`}
+          />
+        </div>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="pt-5 space-y-5">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function LessonForm() {
   const {
@@ -58,12 +114,11 @@ export default function LessonForm() {
         )}
       </div>
 
-      <form onSubmit={handleSaveLesson} className="space-y-6">
-        {/* 1. General */}
-        <div className="space-y-3">
-          <span className="text-base md:text-lg font-extrabold text-[#1cb0f6] bg-sky-50 px-3 py-1 rounded-full border border-sky-100/50 inline-block">
-            1. General
-          </span>
+      <form onSubmit={handleSaveLesson} className="space-y-8">
+        {/* ================================================================ */}
+        {/* 1. GENERAL                                                       */}
+        {/* ================================================================ */}
+        <SectionAccordion number="1" title="General" defaultOpen={true}>
           <div className="pt-2">
             <label className="block text-base md:text-lg font-bold text-slate-700 mb-2">
               Título de la Lección
@@ -74,18 +129,15 @@ export default function LessonForm() {
               value={formTitulo}
               onChange={(e) => setFormTitulo(e.target.value)}
               placeholder="ej: Present Simple"
-              className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base md:text-lg font-bold outline-none focus:border-sky-500 bg-white text-slate-800 transition-colors shadow-xs"
+              className="w-full px-5 py-4 border-2 border-slate-200 rounded-xl text-base md:text-lg font-bold outline-none focus:border-sky-500 bg-white text-slate-800 transition-colors shadow-xs"
             />
           </div>
-        </div>
+        </SectionAccordion>
 
-        {/* 2. Vocabulario */}
-        <div className="space-y-4 pt-5 border-t-2 border-slate-100">
-          <div className="flex justify-between items-center">
-            <span className="text-base md:text-lg font-extrabold text-[#1cb0f6] bg-sky-50 px-3 py-1 rounded-full border border-sky-100/50 inline-block">
-              2. Vocabulario Inicial
-            </span>
-          </div>
+        {/* ================================================================ */}
+        {/* 2. VOCABULARIO                                                    */}
+        {/* ================================================================ */}
+        <SectionAccordion number="2" title="Vocabulario Inicial">
           <VocabTable
             items={formVocabularioDetallado}
             onAdd={(item) => setFormVocabularioDetallado([...formVocabularioDetallado, item])}
@@ -96,39 +148,37 @@ export default function LessonForm() {
             }}
             onRemove={(idx) => setFormVocabularioDetallado(formVocabularioDetallado.filter((_, i) => i !== idx))}
           />
-        </div>
+        </SectionAccordion>
 
-        {/* 3. Gramática */}
-        <div className="space-y-4 pt-5 border-t-2 border-slate-100">
-          <span className="text-base md:text-lg font-extrabold text-[#1cb0f6] bg-sky-50 px-3 py-1 rounded-full border border-sky-100/50 inline-block">
-            3. Estructura Gramatical
-          </span>
-
-          {/* Campos de Título y Descripción de la Gramática */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* ================================================================ */}
+        {/* 3. ESTRUCTURA GRAMATICAL                                          */}
+        {/* ================================================================ */}
+        <SectionAccordion number="3" title="Estructura Gramatical">
+          {/* Título y Descripción */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+              <label className="text-xs font-bold text-slate-500 uppercase block mb-1.5">
                 Título de la Gramática
               </label>
               <input type="text" value={formGramaticaTitulo}
                 onChange={(e) => setFormGramaticaTitulo(e.target.value)}
                 placeholder="ej: PRESENT SIMPLE"
-                className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm font-extrabold uppercase outline-none focus:border-sky-500 bg-white"
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base font-extrabold uppercase outline-none focus:border-sky-500 bg-white"
               />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+              <label className="text-xs font-bold text-slate-500 uppercase block mb-1.5">
                 Descripción de la Gramática
               </label>
               <input type="text" value={formGramaticaDesc}
                 onChange={(e) => setFormGramaticaDesc(e.target.value)}
                 placeholder="ej: Rutinas Diarias"
-                className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-sky-500 bg-white"
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base font-bold outline-none focus:border-sky-500 bg-white"
               />
             </div>
           </div>
 
-          {/* Vista previa mini de la gramática (tal como la ve el estudiante) */}
+          {/* Vista previa mini de la gramática */}
           <div
             className="w-full rounded-[14px] p-4 text-white text-sm"
             style={{
@@ -205,9 +255,9 @@ export default function LessonForm() {
             </div>
           </DetailsCollapsible>
 
-          {/* Fórmula */}
-          <div className="space-y-1.5">
-            <label className="block text-base md:text-lg font-bold text-slate-700 mb-1.5">
+          {/* Fórmula Gramatical */}
+          <div className="space-y-2">
+            <label className="block text-base md:text-lg font-bold text-slate-700">
               Fórmula Gramatical general (para la caja oscura)
             </label>
             <input
@@ -216,10 +266,10 @@ export default function LessonForm() {
               value={formFormulaGramatica}
               onChange={(e) => setFormFormulaGramatica(e.target.value)}
               placeholder="ej: Subject + Verb (-s/-es) + Complement"
-              className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base md:text-lg font-bold font-mono outline-none focus:border-sky-500 text-sky-700 bg-sky-50/20 transition-colors shadow-xs"
+              className="w-full px-5 py-4 border-2 border-slate-200 rounded-xl text-base md:text-lg font-bold font-mono outline-none focus:border-sky-500 text-sky-700 bg-sky-50/20 transition-colors shadow-xs"
             />
 
-            {/* Collapsible: Ejemplos de la fórmula */}
+            {/* Collapsible: Ejemplos */}
             <DetailsCollapsible
               title="Ejemplos de la Fórmula"
               count={formCalentamiento.filter(w => w.fraseMetaEn.trim()).length}
@@ -249,26 +299,25 @@ export default function LessonForm() {
           </div>
 
           <GrammarExampleSection />
-        </div>
+        </SectionAccordion>
 
-        {/* 4. Construcción de Oraciones */}
-        <div className="space-y-4 pt-5 border-t-2 border-slate-100">
-          <div className="flex justify-between items-center bg-sky-50/40 p-3 rounded-2xl border border-sky-100/50">
-            <span className="text-base md:text-lg font-extrabold text-[#1cb0f6] px-1 inline-block">
-              4. Construcción de Oraciones
-            </span>
+        {/* ================================================================ */}
+        {/* 4. CONSTRUCCIÓN DE ORACIONES                                      */}
+        {/* ================================================================ */}
+        <SectionAccordion number="4" title="Construcción de Oraciones">
+          <div className="flex justify-end">
             <button
               type="button"
               onClick={handleAddWarmupRow}
-              className="py-2 px-4 bg-sky-100 text-sky-700 hover:bg-sky-200 rounded-xl text-sm font-black flex items-center gap-1.5 transition-all cursor-pointer border border-sky-200/50"
+              className="py-2.5 px-5 bg-sky-100 text-sky-700 hover:bg-sky-200 rounded-xl text-sm font-black flex items-center gap-1.5 transition-all cursor-pointer border border-sky-200/50"
             >
               <Plus className="w-4 h-4" /> Añadir Frase
             </button>
           </div>
-          <div className="space-y-3.5 max-h-[350px] overflow-y-auto pr-1">
+          <div className="space-y-3.5 max-h-[400px] overflow-y-auto pr-1">
             {formCalentamiento.map((warm, idx) => (
               <div key={idx} className="bg-slate-50/50 p-4 rounded-2xl border-2 border-slate-150 relative flex items-center gap-4">
-                <span className="text-base font-black text-slate-400 w-6 text-center">{idx + 1}</span>
+                <span className="text-lg font-black text-slate-400 w-8 text-center">{idx + 1}</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
                   <div className="space-y-1">
                     <span className="text-xs font-bold text-slate-500 block">En inglés</span>
@@ -277,7 +326,7 @@ export default function LessonForm() {
                       value={warm.fraseMetaEn}
                       onChange={(e) => handleWarmupRowChange(idx, "en", e.target.value)}
                       placeholder="ej: He plays tennis"
-                      className="w-full px-3.5 py-2.5 border-2 border-slate-200 rounded-xl text-sm md:text-base font-bold text-slate-700 outline-none bg-white focus:border-sky-500"
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base md:text-lg font-bold text-slate-700 outline-none bg-white focus:border-sky-500"
                     />
                   </div>
                   <div className="space-y-1">
@@ -287,7 +336,7 @@ export default function LessonForm() {
                       value={warm.fraseMetaEs}
                       onChange={(e) => handleWarmupRowChange(idx, "es", e.target.value)}
                       placeholder="ej: Él juega tenis"
-                      className="w-full px-3.5 py-2.5 border-2 border-slate-200 rounded-xl text-sm md:text-base font-bold text-slate-700 outline-none bg-white focus:border-sky-500"
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base md:text-lg font-bold text-slate-700 outline-none bg-white focus:border-sky-500"
                     />
                   </div>
                 </div>
@@ -302,28 +351,27 @@ export default function LessonForm() {
               </div>
             ))}
           </div>
-        </div>
+        </SectionAccordion>
 
-        {/* 5. Pronunciación */}
-        <div className="space-y-4 pt-5 border-t-2 border-slate-100">
-          <div className="flex justify-between items-center bg-sky-50/40 p-3 rounded-2xl border border-sky-100/50">
-            <span className="text-base md:text-lg font-extrabold text-[#1cb0f6] px-1 inline-block">
-              5. Práctica de Pronunciación
-            </span>
+        {/* ================================================================ */}
+        {/* 5. PRÁCTICA DE PRONUNCIACIÓN                                      */}
+        {/* ================================================================ */}
+        <SectionAccordion number="5" title="Práctica de Pronunciación">
+          <div className="flex justify-end">
             <button type="button" onClick={handleAddPronunciacionRow}
-              className="py-2 px-4 bg-sky-100 text-sky-700 hover:bg-sky-200 rounded-xl text-sm font-black flex items-center gap-1.5 transition-all cursor-pointer border border-sky-200/50"
+              className="py-2.5 px-5 bg-sky-100 text-sky-700 hover:bg-sky-200 rounded-xl text-sm font-black flex items-center gap-1.5 transition-all cursor-pointer border border-sky-200/50"
             >
               <Plus className="w-4 h-4" /> Añadir Frase
             </button>
           </div>
-          <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
             {formFrasesPronunciacion.map((frase, idx) => (
               <div key={idx} className="flex items-center gap-3 bg-slate-50/35 p-3 rounded-2xl border border-slate-100">
-                <span className="text-sm font-extrabold text-slate-400 w-6 text-right">{idx + 1}.</span>
+                <span className="text-base font-extrabold text-slate-400 w-8 text-right">{idx + 1}.</span>
                 <input type="text" required value={frase}
                   onChange={(e) => handlePronunciacionRowChange(idx, e.target.value)}
                   placeholder="ej: She runs fast in the morning"
-                  className="flex-1 px-3.5 py-2.5 border-2 border-slate-200 rounded-xl text-sm md:text-base font-bold outline-none focus:border-sky-500 text-sky-700 transition-colors bg-white shadow-xs"
+                  className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl text-base md:text-lg font-bold outline-none focus:border-sky-500 text-sky-700 transition-colors bg-white shadow-xs"
                 />
                 {formFrasesPronunciacion.length > 1 && (
                   <button type="button" onClick={() => handleRemovePronunciacionRow(idx)}
@@ -336,25 +384,24 @@ export default function LessonForm() {
               </div>
             ))}
           </div>
-        </div>
+        </SectionAccordion>
 
-        {/* 6. Evaluación */}
-        <div className="space-y-4 pt-5 border-t-2 border-slate-100">
-          <div className="flex justify-between items-center bg-sky-50/40 p-3 rounded-2xl border border-sky-100/50">
-            <span className="text-base md:text-lg font-extrabold text-[#1cb0f6] px-1 inline-block">
-              6. Examen / Evaluación
-            </span>
+        {/* ================================================================ */}
+        {/* 6. EXAMEN / EVALUACIÓN                                            */}
+        {/* ================================================================ */}
+        <SectionAccordion number="6" title="Examen / Evaluación">
+          <div className="flex justify-end">
             <button type="button" onClick={handleAddEvaluationRow}
-              className="py-2 px-4 bg-sky-100 text-sky-700 hover:bg-sky-200 rounded-xl text-sm font-black flex items-center gap-1.5 transition-all cursor-pointer border border-sky-200/50"
+              className="py-2.5 px-5 bg-sky-100 text-sky-700 hover:bg-sky-200 rounded-xl text-sm font-black flex items-center gap-1.5 transition-all cursor-pointer border border-sky-200/50"
             >
               <Plus className="w-4 h-4" /> Añadir Pregunta
             </button>
           </div>
-          <div className="space-y-6 max-h-[450px] overflow-y-auto pr-1">
+          <div className="space-y-6 max-h-[500px] overflow-y-auto pr-1">
             {formEvaluacion.map((evalu, qIdx) => (
               <div key={qIdx} className="bg-slate-50/30 p-5 rounded-2xl border-2 border-slate-200 relative space-y-4">
                 <div className="flex items-center justify-between border-b pb-2 mb-1">
-                  <span className="text-sm md:text-base font-extrabold text-sky-700">Pregunta {qIdx + 1}</span>
+                  <span className="text-base md:text-lg font-extrabold text-sky-700">Pregunta {qIdx + 1}</span>
                   {formEvaluacion.length > 1 && (
                     <button type="button" onClick={() => handleRemoveEvaluationRow(qIdx)}
                       className="text-rose-500 hover:bg-rose-50 py-1.5 px-3 rounded-xl border border-rose-100 hover:border-rose-200 transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
@@ -364,18 +411,18 @@ export default function LessonForm() {
                   )}
                 </div>
                 <div className="space-y-3">
-                  <label className="block text-sm md:text-base font-bold text-slate-700">
+                  <label className="block text-base md:text-lg font-bold text-slate-700">
                     Enunciado principal o frase incompleta
                   </label>
                   <input type="text" required value={evalu.pregunta}
                     onChange={(e) => handleEvaluationQuestionChange(qIdx, e.target.value)}
                     placeholder="ej: Complete: 'She ____ a good novel'"
-                    className="w-full px-3.5 py-2.5 border-2 border-slate-200 rounded-xl text-sm md:text-base font-bold text-slate-800 outline-none focus:border-sky-500 bg-white shadow-xs"
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base md:text-lg font-bold text-slate-800 outline-none focus:border-sky-500 bg-white shadow-xs"
                   />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                     {evalu.opciones.map((opt, oIdx) => (
                       <div key={oIdx}
-                        className={`flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all ${
+                        className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
                           opt.correcta
                             ? "bg-emerald-50/50 border-emerald-350 text-emerald-900"
                             : "border-slate-200 bg-white hover:border-slate-300 text-slate-700"
@@ -389,7 +436,7 @@ export default function LessonForm() {
                         <input type="text" required value={opt.texto}
                           onChange={(e) => handleEvaluationOptionTextChange(qIdx, oIdx, e.target.value)}
                           placeholder={`Opción ${oIdx + 1}`}
-                          className="flex-1 bg-transparent border-0 outline-none text-xs md:text-sm font-extrabold py-1"
+                          className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base font-extrabold py-1"
                         />
                       </div>
                     ))}
@@ -398,7 +445,7 @@ export default function LessonForm() {
               </div>
             ))}
           </div>
-        </div>
+        </SectionAccordion>
 
         {teacherFormError && (
           <div className="bg-red-50 border-2 border-red-200 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center gap-2">
@@ -452,4 +499,3 @@ function DetailsCollapsible({
     </div>
   );
 }
-
