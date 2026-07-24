@@ -10,7 +10,7 @@ export default function GrammarExampleSection() {
     <div className="bg-slate-50 p-5 md:p-6 rounded-2xl border-2 border-slate-200 space-y-4">
       <div>
         <label className="block text-base md:text-lg font-black text-slate-800 tracking-tight flex items-center gap-1.5">
-          🎯 Ejemplo Práctico Interactivo (Paso 2)
+          🎯 Ejemplo Práctico Interactivo
         </label>
         <p className="text-sm md:text-base text-slate-500 font-medium leading-relaxed mt-1">
           Escribe una oración de ejemplo y asigna roles a sus palabras para que los estudiantes las exploren de manera interactiva.

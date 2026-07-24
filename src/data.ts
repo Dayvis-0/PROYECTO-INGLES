@@ -1,4 +1,4 @@
-import { Leccion, Calificacion } from "./types";
+import { Leccion, Calificacion, GramaticaColumna } from "./types";
 
 // Base64 SVGs to simulate static physical images in high visual fidelity
 export const PRESENT_SIMPLE_SVG = "data:image/svg+xml;utf8," + encodeURIComponent(`
@@ -78,6 +78,15 @@ export const PRESENT_CONTINUOUS_SVG = "data:image/svg+xml;utf8," + encodeURIComp
   </g>
 </svg>
 `);
+
+export const DEFAULT_GRAMATICA_TITULO = "PRESENT SIMPLE";
+export const DEFAULT_GRAMATICA_DESC = "Rutinas Diarias";
+
+export const DEFAULT_GRAMATICA_COLUMNAS: GramaticaColumna[] = [
+  { titulo: "I / You / We / They", verbo: "PLAY", nota: "Every Saturday" },
+  { titulo: "He / She / It", verbo: "PLAYS", nota: "Adds -s / -es\ne.g. works, studies" },
+  { titulo: "FORMULA", verbo: "S + Verb(-s) + Complement", nota: "e.g. She eats an apple." },
+];
 
 // 2 Default lessons with 10 high-quality evaluation exercises each to satisfy scholastic evaluation criteria
 export const LECCIONES_INICIALES: Leccion[] = [

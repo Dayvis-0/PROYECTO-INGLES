@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { BookOpen, AlertCircle, Edit3, Trash2 } from "lucide-react";
-import type { Leccion, EjercicioCalentamiento, PreguntaEvaluacion, VocabularioItem } from "../../types";
-import { PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG, saveStoredLessons } from "../../data";
+import type { Leccion, EjercicioCalentamiento, PreguntaEvaluacion, VocabularioItem, GramaticaColumna } from "../../types";
+import { PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG, DEFAULT_GRAMATICA_COLUMNAS, DEFAULT_GRAMATICA_TITULO, DEFAULT_GRAMATICA_DESC, saveStoredLessons } from "../../data";
 import { useAppContext } from "../../context/AppContext";
 import { ModalConfirm } from "../ui";
 
@@ -20,6 +20,9 @@ export default function LessonList() {
     setFormEjemploOracion,
     setFormEjemploRoles,
     setFormVocabularioDetallado,
+    setFormGramaticaColumnas,
+    setFormGramaticaTitulo,
+    setFormGramaticaDesc,
     setTeacherFormError,
   } = useAppContext();
 
@@ -31,6 +34,9 @@ export default function LessonList() {
     setFormTitulo, setFormImagenGramatica, setFormFormulaGramatica,
     setFormFrasesPronunciacion, setFormCalentamiento, setFormEvaluacion,
     setFormEjemploOracion, setFormEjemploRoles, setFormVocabularioDetallado,
+    setFormGramaticaColumnas,
+    setFormGramaticaTitulo,
+    setFormGramaticaDesc,
     setTeacherFormError,
   );
 
@@ -151,6 +157,9 @@ function useLessonHandlers(
   setFormEjemploOracion: (v: string) => void,
   setFormEjemploRoles: (v: string[]) => void,
   setFormVocabularioDetallado: (v: VocabularioItem[]) => void,
+  setFormGramaticaColumnas: (v: GramaticaColumna[]) => void,
+  setFormGramaticaTitulo: (v: string) => void,
+  setFormGramaticaDesc: (v: string) => void,
   setTeacherFormError: (v: string | null) => void,
 ) {
   const handleEditLesson = (les: Leccion) => {
@@ -178,6 +187,9 @@ function useLessonHandlers(
     );
     setFormEjemploOracion(les.ejemploOracion || les.frasesPronunciacion?.[0] || "");
     setFormEjemploRoles(les.ejemploRoles ? [...les.ejemploRoles] : []);
+    setFormGramaticaColumnas(les.gramaticaColumnas ? les.gramaticaColumnas.map(c => ({ ...c })) : DEFAULT_GRAMATICA_COLUMNAS.map(c => ({ ...c })));
+    setFormGramaticaTitulo(les.gramaticaTitulo || DEFAULT_GRAMATICA_TITULO);
+    setFormGramaticaDesc(les.gramaticaDesc || DEFAULT_GRAMATICA_DESC);
     setFormVocabularioDetallado(
       les.vocabularioDetallado && les.vocabularioDetallado.length > 0
         ? les.vocabularioDetallado.map(item => ({ ...item }))

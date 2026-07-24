@@ -1,6 +1,6 @@
 import { type FormEvent, useCallback } from "react";
 import type { Leccion } from "../types";
-import { saveStoredLessons, PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG } from "../data";
+import { saveStoredLessons, PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG, DEFAULT_GRAMATICA_COLUMNAS, DEFAULT_GRAMATICA_TITULO, DEFAULT_GRAMATICA_DESC } from "../data";
 import { useAppContext } from "../context/AppContext";
 
 /**
@@ -33,6 +33,12 @@ export function useTeacherForm() {
     setFormEjemploRoles,
     formVocabularioDetallado,
     setFormVocabularioDetallado,
+    formGramaticaColumnas,
+    setFormGramaticaColumnas,
+    formGramaticaTitulo,
+    setFormGramaticaTitulo,
+    formGramaticaDesc,
+    setFormGramaticaDesc,
   } = useAppContext();
 
   // ── Warmup handlers ──────────────────────────────────────
@@ -165,6 +171,9 @@ export function useTeacherForm() {
     setFormEjemploOracion("");
     setFormEjemploRoles([]);
     setFormVocabularioDetallado([]);
+    setFormGramaticaColumnas(DEFAULT_GRAMATICA_COLUMNAS);
+    setFormGramaticaTitulo(DEFAULT_GRAMATICA_TITULO);
+    setFormGramaticaDesc(DEFAULT_GRAMATICA_DESC);
   }, [
     setFormTitulo,
     setFormImagenGramatica,
@@ -177,6 +186,9 @@ export function useTeacherForm() {
     setFormEjemploOracion,
     setFormEjemploRoles,
     setFormVocabularioDetallado,
+    setFormGramaticaColumnas,
+    setFormGramaticaTitulo,
+    setFormGramaticaDesc,
   ]);
 
   const handleSaveLesson = useCallback(
@@ -268,6 +280,9 @@ export function useTeacherForm() {
               ejemploOracion: formEjemploOracion.trim(),
               ejemploRoles: formEjemploRoles,
               vocabularioDetallado: formVocabularioDetallado,
+              gramaticaColumnas: formGramaticaColumnas.map(c => ({ ...c })),
+              gramaticaTitulo: formGramaticaTitulo.trim(),
+              gramaticaDesc: formGramaticaDesc.trim(),
               listaVocabulario:
                 formVocabularioDetallado.length > 0
                   ? formVocabularioDetallado
@@ -297,6 +312,9 @@ export function useTeacherForm() {
           formulaGramatica: formFormulaGramatica.trim(),
           ejemploOracion: formEjemploOracion.trim(),
           ejemploRoles: formEjemploRoles,
+          gramaticaColumnas: formGramaticaColumnas.map(c => ({ ...c })),
+          gramaticaTitulo: formGramaticaTitulo.trim(),
+          gramaticaDesc: formGramaticaDesc.trim(),
           calentamiento: formCalentamiento,
           evaluacion: formEvaluacion,
           frasesPronunciacion: validatedFrasesPronunciacion,
@@ -320,6 +338,9 @@ export function useTeacherForm() {
       formEjemploOracion,
       formEjemploRoles,
       formVocabularioDetallado,
+      formGramaticaColumnas,
+      formGramaticaTitulo,
+      formGramaticaDesc,
       editingLessonId,
       lessons,
       setLessons,

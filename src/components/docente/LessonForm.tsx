@@ -1,4 +1,5 @@
-import { Plus, Trash2, AlertCircle, RotateCcw } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Plus, Trash2, AlertCircle, RotateCcw, ChevronDown, ChevronRight } from "lucide-react";
 import type { EjercicioCalentamiento, PreguntaEvaluacion } from "../../types";
 import { useAppContext } from "../../context/AppContext";
 import { useTeacherForm } from "../../hooks/useTeacherForm";
@@ -17,6 +18,9 @@ export default function LessonForm() {
     formEjemploOracion, setFormEjemploOracion,
     formEjemploRoles, setFormEjemploRoles,
     formVocabularioDetallado, setFormVocabularioDetallado,
+    formGramaticaColumnas, setFormGramaticaColumnas,
+    formGramaticaTitulo, setFormGramaticaTitulo,
+    formGramaticaDesc, setFormGramaticaDesc,
   } = useAppContext();
 
   const {
@@ -79,7 +83,7 @@ export default function LessonForm() {
         <div className="space-y-4 pt-5 border-t-2 border-slate-100">
           <div className="flex justify-between items-center">
             <span className="text-base md:text-lg font-extrabold text-[#1cb0f6] bg-sky-50 px-3 py-1 rounded-full border border-sky-100/50 inline-block">
-              2. Vocabulario Inicial (Paso 1)
+              2. Vocabulario Inicial
             </span>
           </div>
           <VocabTable
@@ -97,11 +101,114 @@ export default function LessonForm() {
         {/* 3. Gramática */}
         <div className="space-y-4 pt-5 border-t-2 border-slate-100">
           <span className="text-base md:text-lg font-extrabold text-[#1cb0f6] bg-sky-50 px-3 py-1 rounded-full border border-sky-100/50 inline-block">
-            3. Estructura Gramatical (Paso 2)
+            3. Estructura Gramatical
           </span>
+
+          {/* Campos de Título y Descripción de la Gramática */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                Título de la Gramática
+              </label>
+              <input type="text" value={formGramaticaTitulo}
+                onChange={(e) => setFormGramaticaTitulo(e.target.value)}
+                placeholder="ej: PRESENT SIMPLE"
+                className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm font-extrabold uppercase outline-none focus:border-sky-500 bg-white"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                Descripción de la Gramática
+              </label>
+              <input type="text" value={formGramaticaDesc}
+                onChange={(e) => setFormGramaticaDesc(e.target.value)}
+                placeholder="ej: Rutinas Diarias"
+                className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-sky-500 bg-white"
+              />
+            </div>
+          </div>
+
+          {/* Vista previa mini de la gramática (tal como la ve el estudiante) */}
+          <div
+            className="w-full rounded-[14px] p-4 text-white text-sm"
+            style={{
+              background: "linear-gradient(135deg, #1a8fe3 0%, #0d6bbf 60%, #0a55a0 100%)",
+              boxShadow: "0 4px 16px rgba(13, 107, 191, 0.2)",
+            }}
+          >
+            <div className="font-extrabold tracking-wide">
+              Grammar Guide: {formGramaticaTitulo || "TITLE"}
+            </div>
+            <div className="text-[10px] text-white/75 mb-3">
+              {formGramaticaDesc || "Descripción del tema"}
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {formGramaticaColumnas.map((col, i) => (
+                <div key={i}
+                  className={`${i === 2 ? "bg-white/12 rounded-[8px] p-2 text-center flex flex-col items-center justify-center gap-1" : "bg-white/12 rounded-[8px] p-2 text-center"}`}
+                >
+                  <div className="text-[9px] text-white/70 leading-tight">{col.titulo}</div>
+                  <div className={`text-sm font-extrabold ${i === 0 ? "text-[#4dff6e]" : i === 1 ? "text-[#ffe44d]" : "text-[#ffe44d]"}`}>
+                    {col.verbo}
+                  </div>
+                  <div className="text-[8px] text-white/65 whitespace-pre-line">{col.nota}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Editor de columnas */}
+          <DetailsCollapsible title="📊 Configurar Columnas de la Tarjeta" count={0}>
+            <div className="space-y-5">
+              {formGramaticaColumnas.map((col, i) => (
+                <div key={i} className="p-3 border border-slate-200 rounded-xl bg-white space-y-2.5">
+                  <span className="text-xs font-black text-sky-600 uppercase tracking-wider">
+                    Columna {i + 1}{i === 0 ? " — I/You/We/They" : i === 1 ? " — He/She/It" : " — Fórmula"}
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Título</label>
+                      <input type="text" value={col.titulo}
+                        onChange={(e) => {
+                          const updated = [...formGramaticaColumnas];
+                          updated[i] = { ...updated[i], titulo: e.target.value };
+                          setFormGramaticaColumnas(updated);
+                        }}
+                        className="w-full px-2.5 py-2 border-2 border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-sky-500 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Verbo / Etiqueta</label>
+                      <input type="text" value={col.verbo}
+                        onChange={(e) => {
+                          const updated = [...formGramaticaColumnas];
+                          updated[i] = { ...updated[i], verbo: e.target.value };
+                          setFormGramaticaColumnas(updated);
+                        }}
+                        className="w-full px-2.5 py-2 border-2 border-slate-200 rounded-lg text-sm font-mono font-bold outline-none focus:border-sky-500 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Nota</label>
+                      <input type="text" value={col.nota}
+                        onChange={(e) => {
+                          const updated = [...formGramaticaColumnas];
+                          updated[i] = { ...updated[i], nota: e.target.value };
+                          setFormGramaticaColumnas(updated);
+                        }}
+                        className="w-full px-2.5 py-2 border-2 border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-sky-500 bg-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </DetailsCollapsible>
+
+          {/* Fórmula */}
           <div className="space-y-1.5">
             <label className="block text-base md:text-lg font-bold text-slate-700 mb-1.5">
-              Fórmula Gramatical general
+              Fórmula Gramatical general (para la caja oscura)
             </label>
             <input
               type="text"
@@ -111,15 +218,44 @@ export default function LessonForm() {
               placeholder="ej: Subject + Verb (-s/-es) + Complement"
               className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-base md:text-lg font-bold font-mono outline-none focus:border-sky-500 text-sky-700 bg-sky-50/20 transition-colors shadow-xs"
             />
+
+            {/* Collapsible: Ejemplos de la fórmula */}
+            <DetailsCollapsible
+              title="Ejemplos de la Fórmula"
+              count={formCalentamiento.filter(w => w.fraseMetaEn.trim()).length}
+            >
+              {formCalentamiento.filter(w => w.fraseMetaEn.trim()).length === 0 ? (
+                <p className="text-sm text-slate-400 italic">
+                  Aún no hay frases de ejemplo. Agrégalas en la sección "4. Construcción de Oraciones".
+                </p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {formCalentamiento
+                    .filter(w => w.fraseMetaEn.trim())
+                    .map((w, i) => (
+                      <li key={i} className="flex items-center gap-2 text-sm">
+                        <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 text-[10px] font-black flex items-center justify-center shrink-0">
+                          {i + 1}
+                        </span>
+                        <code className="font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                          {w.fraseMetaEn}
+                        </code>
+                        <span className="text-slate-400 text-xs">→ {w.fraseMetaEs}</span>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </DetailsCollapsible>
           </div>
+
           <GrammarExampleSection />
         </div>
 
-        {/* 4. Calentamiento */}
+        {/* 4. Construcción de Oraciones */}
         <div className="space-y-4 pt-5 border-t-2 border-slate-100">
           <div className="flex justify-between items-center bg-sky-50/40 p-3 rounded-2xl border border-sky-100/50">
             <span className="text-base md:text-lg font-extrabold text-[#1cb0f6] px-1 inline-block">
-              4. Calentamiento de Traducción (Paso 3)
+              4. Construcción de Oraciones
             </span>
             <button
               type="button"
@@ -172,7 +308,7 @@ export default function LessonForm() {
         <div className="space-y-4 pt-5 border-t-2 border-slate-100">
           <div className="flex justify-between items-center bg-sky-50/40 p-3 rounded-2xl border border-sky-100/50">
             <span className="text-base md:text-lg font-extrabold text-[#1cb0f6] px-1 inline-block">
-              5. Práctica de Pronunciación (Paso 4)
+              5. Práctica de Pronunciación
             </span>
             <button type="button" onClick={handleAddPronunciacionRow}
               className="py-2 px-4 bg-sky-100 text-sky-700 hover:bg-sky-200 rounded-xl text-sm font-black flex items-center gap-1.5 transition-all cursor-pointer border border-sky-200/50"
@@ -206,7 +342,7 @@ export default function LessonForm() {
         <div className="space-y-4 pt-5 border-t-2 border-slate-100">
           <div className="flex justify-between items-center bg-sky-50/40 p-3 rounded-2xl border border-sky-100/50">
             <span className="text-base md:text-lg font-extrabold text-[#1cb0f6] px-1 inline-block">
-              6. Examen / Evaluación (Paso 5)
+              6. Examen / Evaluación
             </span>
             <button type="button" onClick={handleAddEvaluationRow}
               className="py-2 px-4 bg-sky-100 text-sky-700 hover:bg-sky-200 rounded-xl text-sm font-black flex items-center gap-1.5 transition-all cursor-pointer border border-sky-200/50"
@@ -277,6 +413,42 @@ export default function LessonForm() {
           {editingLessonId ? "💾 Guardar Cambios" : "💾 Registrar Lección"}
         </button>
       </form>
+    </div>
+  );
+}
+
+// ── Collapsible details component ─────────────────────────────
+function DetailsCollapsible({
+  title,
+  count,
+  children,
+}: {
+  title: string;
+  count: number;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-2 border border-slate-200 rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer text-left"
+      >
+        <span className="text-sm font-bold text-slate-600 flex items-center gap-2">
+          {open ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+          {title}
+          {count > 0 && (
+            <span className="bg-sky-100 text-sky-700 text-[10px] font-black px-1.5 py-0.5 rounded-full">
+              {count}
+            </span>
+          )}
+        </span>
+        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+          {open ? "Ocultar" : "Ver"}
+        </span>
+      </button>
+      {open && <div className="px-4 py-3 border-t border-slate-200 bg-white">{children}</div>}
     </div>
   );
 }

@@ -30,7 +30,7 @@ export default function CalentamientoStep({ subIndex }: { subIndex: number }) {
     <div className="space-y-4 w-full">
       <div className="text-center space-y-1">
         <span className="text-[10px] font-extrabold uppercase text-[#1cb0f6] tracking-widest bg-sky-50 px-2 py-0.5 rounded">
-          PASO 3 DE 5: CALENTAMIENTO TRADUCCIÓN ({subIndex + 1}/{activeLesson.calentamiento.length})
+          PASO 3 DE 5: CONSTRUCCIÓN DE ORACIONES ({subIndex + 1}/{activeLesson.calentamiento.length})
         </span>
         <h4 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">
           Construye la Frase

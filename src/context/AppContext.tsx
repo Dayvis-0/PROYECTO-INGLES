@@ -11,6 +11,7 @@ import type {
   EjercicioCalentamiento,
   PreguntaEvaluacion,
   VocabularioItem,
+  GramaticaColumna,
 } from "../types";
 import type {
   FeedbackType,
@@ -19,6 +20,9 @@ import type {
 import {
   getStoredLessons,
   getStoredCalificaciones,
+  DEFAULT_GRAMATICA_COLUMNAS,
+  DEFAULT_GRAMATICA_TITULO,
+  DEFAULT_GRAMATICA_DESC,
 } from "../data";
 
 // ─── State shape (internal) ──────────────────────────────
@@ -45,6 +49,9 @@ interface AppState {
   formEjemploOracion: string;
   formEjemploRoles: string[];
   formVocabularioDetallado: VocabularioItem[];
+  formGramaticaColumnas: GramaticaColumna[];
+  formGramaticaTitulo: string;
+  formGramaticaDesc: string;
   // Student Walkthrough
   walkthroughActive: boolean;
   activeLesson: Leccion | null;
@@ -105,6 +112,9 @@ const initialState: AppState = {
   formEjemploOracion: "",
   formEjemploRoles: [],
   formVocabularioDetallado: [],
+  formGramaticaColumnas: DEFAULT_GRAMATICA_COLUMNAS,
+  formGramaticaTitulo: DEFAULT_GRAMATICA_TITULO,
+  formGramaticaDesc: DEFAULT_GRAMATICA_DESC,
   // Student Walkthrough
   walkthroughActive: false,
   activeLesson: null,
@@ -152,6 +162,9 @@ type AppAction =
   | { type: "SET_FORM_EJEMPLO_ORACION"; payload: string }
   | { type: "SET_FORM_EJEMPLO_ROLES"; payload: string[] }
   | { type: "SET_FORM_VOCABULARIO_DETALLADO"; payload: VocabularioItem[] }
+  | { type: "SET_FORM_GRAMATICA_COLUMNAS"; payload: GramaticaColumna[] }
+  | { type: "SET_FORM_GRAMATICA_TITULO"; payload: string }
+  | { type: "SET_FORM_GRAMATICA_DESC"; payload: string }
   | { type: "SET_WALKTHROUGH_ACTIVE"; payload: boolean }
   | { type: "SET_ACTIVE_LESSON"; payload: Leccion | null }
   | { type: "SET_FLAT_SCREENS"; payload: any[] }
@@ -221,6 +234,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, formEjemploRoles: action.payload };
     case "SET_FORM_VOCABULARIO_DETALLADO":
       return { ...state, formVocabularioDetallado: action.payload };
+    case "SET_FORM_GRAMATICA_COLUMNAS":
+      return { ...state, formGramaticaColumnas: action.payload };
+    case "SET_FORM_GRAMATICA_TITULO":
+      return { ...state, formGramaticaTitulo: action.payload };
+    case "SET_FORM_GRAMATICA_DESC":
+      return { ...state, formGramaticaDesc: action.payload };
     case "SET_WALKTHROUGH_ACTIVE":
       return { ...state, walkthroughActive: action.payload };
     case "SET_ACTIVE_LESSON":
@@ -321,6 +340,12 @@ interface AppContextType {
   setFormEjemploRoles: (s: string[]) => void;
   formVocabularioDetallado: VocabularioItem[];
   setFormVocabularioDetallado: (v: VocabularioItem[]) => void;
+  formGramaticaColumnas: GramaticaColumna[];
+  setFormGramaticaColumnas: (c: GramaticaColumna[]) => void;
+  formGramaticaTitulo: string;
+  setFormGramaticaTitulo: (s: string) => void;
+  formGramaticaDesc: string;
+  setFormGramaticaDesc: (s: string) => void;
 
   // Student Walkthrough
   walkthroughActive: boolean;
@@ -439,6 +464,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setFormEjemploRoles: (s) => dispatch({ type: "SET_FORM_EJEMPLO_ROLES", payload: s }),
     formVocabularioDetallado: state.formVocabularioDetallado,
     setFormVocabularioDetallado: (v) => dispatch({ type: "SET_FORM_VOCABULARIO_DETALLADO", payload: v }),
+    formGramaticaColumnas: state.formGramaticaColumnas,
+    setFormGramaticaColumnas: (c) => dispatch({ type: "SET_FORM_GRAMATICA_COLUMNAS", payload: c }),
+    formGramaticaTitulo: state.formGramaticaTitulo,
+    setFormGramaticaTitulo: (s) => dispatch({ type: "SET_FORM_GRAMATICA_TITULO", payload: s }),
+    formGramaticaDesc: state.formGramaticaDesc,
+    setFormGramaticaDesc: (s) => dispatch({ type: "SET_FORM_GRAMATICA_DESC", payload: s }),
 
     // Student Walkthrough
     walkthroughActive: state.walkthroughActive,

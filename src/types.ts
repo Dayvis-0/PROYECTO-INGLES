@@ -32,6 +32,15 @@ export interface Leccion {
   calentamiento: EjercicioCalentamiento[];
   evaluacion: PreguntaEvaluacion[];
   frasesPronunciacion: string[];
+  gramaticaColumnas?: GramaticaColumna[];
+  gramaticaTitulo?: string;
+  gramaticaDesc?: string;
+}
+
+export interface GramaticaColumna {
+  titulo: string;
+  verbo: string;
+  nota: string;
 }
 
 export interface Calificacion {
