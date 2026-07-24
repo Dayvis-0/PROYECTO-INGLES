@@ -10,9 +10,9 @@ export default function EvaluacionStep({ subIndex }: { subIndex: number }) {
 
   return (
     <div className="space-y-4 w-full">
-      <div className="text-center space-y-1">
-        <span className="text-[10px] font-extrabold uppercase text-[#1cb0f6] tracking-widest bg-sky-50 px-2 py-0.5 rounded">
-          PASO 5 DE 5: EVALUACIÓN CALIFICADA ({subIndex + 1}/{activeLesson.evaluacion.length})
+      <div className="text-center space-y-6">
+        <span className="text-xs md:text-sm font-extrabold uppercase text-[#1cb0f6] tracking-widest bg-sky-50 px-3 py-1 rounded">
+          EVALUACIÓN CALIFICADA ({subIndex + 1}/{activeLesson.evaluacion.length})
         </span>
         <h4 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">
           Elige la Alternativa Correcta

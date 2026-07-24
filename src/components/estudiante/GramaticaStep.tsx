@@ -20,8 +20,8 @@ export default function GramaticaStep() {
     <div className="flex flex-col items-center gap-8 w-full max-w-md mx-auto">
       {/* ── Step eyebrow + title block ── */}
       <div className="text-center space-y-3">
-        <span className="text-[11px] font-black uppercase tracking-[0.12em] text-[#7ab8d6] block">
-          PASO 2 DE 5: TEORÍA Y FÓRMULA INTEGRADA
+        <span className="text-xs md:text-sm font-black uppercase tracking-[0.12em] text-[#7ab8d6] block">
+          TEORÍA Y FÓRMULA INTEGRADA
         </span>
         <div>
           <h1 className="text-[32px] font-semibold text-[#1a1a2e] leading-tight">

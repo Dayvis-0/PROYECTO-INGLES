@@ -24,8 +24,8 @@ export default function PronunciacionStep({ subIndex }: { subIndex: number }) {
   return (
     <div className="space-y-4 text-center w-full">
       <div className="space-y-1">
-        <span className="text-[10px] font-extrabold uppercase text-[#1cb0f6] tracking-widest bg-sky-50 px-2 py-0.5 rounded">
-          PASO 4 DE 5: PRÁCTICA DE PRONUNCIACIÓN (Frase {subIndex + 1} de {phrases.length})
+        <span className="text-xs md:text-sm font-extrabold uppercase text-[#1cb0f6] tracking-widest bg-sky-50 px-3 py-1 rounded">
+          PRÁCTICA DE PRONUNCIACIÓN (Frase {subIndex + 1} de {phrases.length})
         </span>
         <h4 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Habla Frente al Micrófono Obtenido</h4>
         <p className="text-slate-500 text-xs font-bold max-w-md mx-auto">

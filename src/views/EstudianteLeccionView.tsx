@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { useWalkthrough } from "../hooks/useWalkthrough";
-import { ProgressBar, FeedbackBanner, ModalConfirm } from "../components/ui";
+import { FeedbackBanner, ModalConfirm } from "../components/ui";
 import {
   VocabularioStep,
   GramaticaStep,
@@ -56,11 +56,23 @@ export default function EstudianteLeccionView() {
     : 0;
   const missingVocab = isVocab ? Math.max(0, totalVocabCount - vistosVocabulario.length) : 0;
 
+  // ── Macro-step mapping (5 etapas visibles) ──────────────
+
+  const MACRO_STEPS = [
+    { key: "vocabulario",              label: "Vocabulario" },
+    { key: "gramatica",                label: "Gramática" },
+    { key: "construccion-de-oraciones", label: "Construcción" },
+    { key: "pronunciacion",            label: "Pronunciación" },
+    { key: "evaluacion",               label: "Evaluación" },
+  ] as const;
+
+  const currentStepIdx = MACRO_STEPS.findIndex(s => s.key === currentScreen?.type);
+
   // ── Render ──────────────────────────────────────────────
 
   return (
     <div className="flex-1 flex flex-col bg-white">
-      <header className="py-4 px-6 md:px-12 flex items-center gap-4 border-b border-slate-100 bg-white">
+      <header className="sticky top-0 z-10 py-2.5 px-3 md:px-12 border-b border-slate-100 bg-white flex items-center gap-2">
         <button
           onClick={() => {
             if (gainedGrade !== null && gainedGrade < 15) {
@@ -71,15 +83,32 @@ export default function EstudianteLeccionView() {
             }
             setShowExitConfirm(true);
           }}
-          className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+          className="p-1.5 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
 
-        <ProgressBar current={flatScreenIndex} total={flatScreens.length} />
-
-        <div className="text-xs md:text-sm font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">
-          Paso {flatScreenIndex + 1} / {flatScreens.length}
+        {/* Breadcrumb de etapas */}
+        <div className="flex-1 flex items-center justify-center gap-0.5 md:gap-1 text-sm md:text-base font-bold text-slate-400 select-none overflow-x-auto">
+          {MACRO_STEPS.map((step, i) => (
+            <span key={step.key} className="flex items-center gap-0.5 md:gap-1 whitespace-nowrap">
+              {i > 0 && <span className="text-slate-300 mx-0.5">→</span>}
+              <span
+                className={`px-1.5 py-0.5 rounded leading-tight ${
+                  i === currentStepIdx
+                    ? "text-[#1cb0f6] bg-sky-50 font-black"
+                    : i < currentStepIdx
+                    ? "text-emerald-500"
+                    : "text-slate-400"
+                }`}
+              >
+                {step.label}
+              </span>
+              {i === currentStepIdx && (
+                <span className="text-[#1cb0f6] text-[10px] md:text-xs leading-none">▲</span>
+              )}
+            </span>
+          ))}
         </div>
       </header>
 
