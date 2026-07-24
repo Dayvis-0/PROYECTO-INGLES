@@ -29,7 +29,7 @@ export type FeedbackType = "idle" | "correct" | "incorrect";
 export type ScreenType =
   | "vocabulario"
   | "gramatica"
-  | "calentamiento"
+  | "construccion-de-oraciones"
   | "pronunciacion"
   | "evaluacion";
 

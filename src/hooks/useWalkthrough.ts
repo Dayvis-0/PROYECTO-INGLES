@@ -69,7 +69,7 @@ export function useWalkthrough() {
       setFeedbackMessage(
         "¡Estructura analizada con éxito! Iniciemos los retos prácticos de calentamiento."
       );
-    } else if (currentScreen.type === "calentamiento") {
+    } else if (currentScreen.type === "construccion-de-oraciones") {
       const idx = currentScreen.subIndex;
       const targetWarmup = activeLesson.calentamiento[idx];
       const correctAns = targetWarmup.fraseMetaEn;
@@ -177,7 +177,7 @@ export function useWalkthrough() {
       if (nextScreen.type === "gramatica" && activeLesson) {
         setActiveHoverGrammarWord(0);
       }
-      if (nextScreen.type === "calentamiento" && activeLesson) {
+      if (nextScreen.type === "construccion-de-oraciones" && activeLesson) {
         const item = activeLesson.calentamiento[nextScreen.subIndex];
         const mainWords = item.fraseMetaEn
           .split(/\s+/)

@@ -1,7 +1,6 @@
 import { LogOut, AlertCircle, Check, GraduationCap, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Leccion, Calificacion } from "../types";
-import type { WalkthroughScreen } from "../constants";
+import type { Leccion } from "../types";
 import { useAppContext } from "../context/AppContext";
 
 interface Props {
@@ -13,98 +12,13 @@ export default function EstudianteHomeView({ onLogout }: Props) {
     currentUser,
     lessons,
     calificaciones,
-    setActiveLesson,
-    setFlatScreens,
-    setFlatScreenIndex,
-    setVistosVocabulario,
-    setExamCorrectCount,
-    setFeedbackState,
-    setFeedbackMessage,
-    setCorrectAnswerReveal,
-    setUserTypedTranslation,
-    setSelectedBubbles,
-    setVoiceSimilarity,
-    setVoiceTranscript,
-    setSelectedExamOptionIndex,
-    setGainedGrade,
-    setWalkthroughActive,
-    setActiveHoverGrammarWord,
+    initWalkthrough,
   } = useAppContext();
   const navigate = useNavigate();
 
   const launchActiveLesson = (leccion: Leccion) => {
-    setActiveLesson(leccion);
-
-    const screens: WalkthroughScreen[] = [];
-    screens.push({ type: "vocabulario" });
-    screens.push({ type: "gramatica" });
-
-    for (let i = 0; i < leccion.calentamiento.length; i++) {
-      screens.push({ type: "calentamiento", subIndex: i });
-    }
-
-    const targetPhrases =
-      leccion.frasesPronunciacion && leccion.frasesPronunciacion.length > 0
-        ? leccion.frasesPronunciacion
-        : [leccion.calentamiento[0]?.fraseMetaEn || "English is practical and beautiful"];
-
-    for (let i = 0; i < targetPhrases.length; i++) {
-      screens.push({ type: "pronunciacion", subIndex: i });
-    }
-
-    for (let i = 0; i < leccion.evaluacion.length; i++) {
-      screens.push({ type: "evaluacion", subIndex: i });
-    }
-
-    setFlatScreens(screens);
-    setFlatScreenIndex(0);
-    resetWalkthroughState({
-      setVistosVocabulario,
-      setExamCorrectCount,
-      setFeedbackState,
-      setFeedbackMessage,
-      setCorrectAnswerReveal,
-      setUserTypedTranslation,
-      setSelectedBubbles,
-      setVoiceSimilarity,
-      setVoiceTranscript,
-      setSelectedExamOptionIndex,
-      setGainedGrade,
-    });
-    setWalkthroughActive(true);
-    navigate(`/estudiante/leccion/${leccion.id}`);
-
-    if (leccion.formulaGramatica) {
-      setActiveHoverGrammarWord(0);
-    }
-  };
-
-  function resetWalkthroughState(s: ResetWalkthroughParams) {
-    s.setVistosVocabulario([]);
-    s.setExamCorrectCount(0);
-    s.setFeedbackState("idle");
-    s.setFeedbackMessage("");
-    s.setCorrectAnswerReveal("");
-    s.setUserTypedTranslation("");
-    s.setSelectedBubbles([]);
-    s.setVoiceSimilarity(null);
-    s.setVoiceTranscript("");
-    s.setSelectedExamOptionIndex(null);
-    s.setGainedGrade(null);
-  }
-
-  type ResetWalkthroughParams = {
-    setVistosVocabulario: (v: string[]) => void;
-    setExamCorrectCount: (n: number | ((prev: number) => number)) => void;
-    setFeedbackState: (f: "idle" | "correct" | "incorrect") => void;
-    setFeedbackMessage: (s: string) => void;
-    setCorrectAnswerReveal: (s: string) => void;
-    setUserTypedTranslation: (s: string) => void;
-    setSelectedBubbles: (s: string[]) => void;
-    setVoiceSimilarity: (n: number | null) => void;
-    setVoiceTranscript: (s: string) => void;
-    setSelectedExamOptionIndex: (n: number | null) => void;
-    setGainedGrade: (n: number | null) => void;
+    initWalkthrough(leccion);
+    navigate("/estudiante/leccion/vocabulario");
   };
 
   return (

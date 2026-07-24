@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { useWalkthrough } from "../hooks/useWalkthrough";
 import { ProgressBar, FeedbackBanner, ModalConfirm } from "../components/ui";
@@ -14,6 +14,7 @@ import {
 } from "../components/estudiante";
 
 export default function EstudianteLeccionView() {
+  const { stepType } = useParams<{ stepType: string }>();
   const {
     walkthroughActive,
     activeLesson,
@@ -25,8 +26,19 @@ export default function EstudianteLeccionView() {
     correctAnswerReveal,
     gainedGrade,
     setWalkthroughActive,
+    setFlatScreenIndex,
   } = useAppContext();
   const navigate = useNavigate();
+
+  // ── Sync URL to the current walkthrough step ──
+  useEffect(() => {
+    if (!walkthroughActive) return;
+    if (!activeLesson || flatScreens.length === 0) return;
+    const screen = flatScreens[flatScreenIndex];
+    if (!screen) return;
+    navigate(`/estudiante/leccion/${screen.type}`, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flatScreenIndex, walkthroughActive]);
 
   const { handleCheckAnswer, handleContinueWalkthrough } = useWalkthrough();
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -88,7 +100,7 @@ export default function EstudianteLeccionView() {
                   return <VocabularioStep />;
                 case "gramatica":
                   return <GramaticaStep />;
-                case "calentamiento":
+                case "construccion-de-oraciones":
                   return <CalentamientoStep subIndex={scMin.subIndex} />;
                 case "pronunciacion":
                   return <PronunciacionStep subIndex={scMin.subIndex} />;

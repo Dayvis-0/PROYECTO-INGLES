@@ -333,6 +333,7 @@ interface AppContextType {
   setFlatScreenIndex: (n: number) => void;
   vistosVocabulario: string[];
   setVistosVocabulario: (s: string[]) => void;
+  initWalkthrough: (leccion: Leccion) => void;
   keyboardMode: boolean;
   setKeyboardMode: (b: boolean) => void;
   userTypedTranslation: string;
@@ -450,6 +451,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setFlatScreenIndex: (n) => dispatch({ type: "SET_FLAT_SCREEN_INDEX", payload: n }),
     vistosVocabulario: state.vistosVocabulario,
     setVistosVocabulario: (s) => dispatch({ type: "SET_VISTOS_VOCABULARIO", payload: s }),
+    initWalkthrough: (leccion) => {
+      dispatch({ type: "SET_ACTIVE_LESSON", payload: leccion });
+
+      const screens: WalkthroughScreen[] = [
+        { type: "vocabulario" },
+        { type: "gramatica" },
+        ...leccion.calentamiento.map((_, i) => ({ type: "construccion-de-oraciones" as const, subIndex: i })),
+        ...(leccion.frasesPronunciacion.length > 0
+          ? leccion.frasesPronunciacion
+          : [leccion.calentamiento[0]?.fraseMetaEn || "English is practical and beautiful"]
+        ).map((_, i) => ({ type: "pronunciacion" as const, subIndex: i })),
+        ...leccion.evaluacion.map((_, i) => ({ type: "evaluacion" as const, subIndex: i })),
+      ];
+
+      dispatch({ type: "SET_FLAT_SCREENS", payload: screens });
+      dispatch({ type: "SET_FLAT_SCREEN_INDEX", payload: 0 });
+      dispatch({ type: "SET_VISTOS_VOCABULARIO", payload: [] });
+      dispatch({ type: "SET_EXAM_CORRECT_COUNT", payload: 0 });
+      dispatch({ type: "SET_FEEDBACK_STATE", payload: "idle" });
+      dispatch({ type: "SET_FEEDBACK_MESSAGE", payload: "" });
+      dispatch({ type: "SET_CORRECT_ANSWER_REVEAL", payload: "" });
+      dispatch({ type: "SET_USER_TYPED_TRANSLATION", payload: "" });
+      dispatch({ type: "SET_SELECTED_BUBBLES", payload: [] });
+      dispatch({ type: "SET_VOICE_SIMILARITY", payload: null });
+      dispatch({ type: "SET_VOICE_TRANSCRIPT", payload: "" });
+      dispatch({ type: "SET_SELECTED_EXAM_OPTION_INDEX", payload: null });
+      dispatch({ type: "SET_GAINED_GRADE", payload: null });
+      dispatch({ type: "SET_GAINED_CORRECT", payload: null });
+      dispatch({ type: "SET_WALKTHROUGH_ACTIVE", payload: true });
+
+      if (leccion.formulaGramatica) {
+        dispatch({ type: "SET_ACTIVE_HOVER_GRAMMAR_WORD", payload: 0 });
+      }
+    },
     keyboardMode: state.keyboardMode,
     setKeyboardMode: (b) => dispatch({ type: "SET_KEYBOARD_MODE", payload: b }),
     userTypedTranslation: state.userTypedTranslation,

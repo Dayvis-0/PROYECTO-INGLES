@@ -47,7 +47,7 @@ function AppShell() {
         <Route path="/login" element={<LoginView />} />
         <Route path="/docente" element={<ProtectedRoute><DocenteView onLogout={handleLogout} /></ProtectedRoute>} />
         <Route path="/estudiante" element={<ProtectedRoute><EstudianteHomeView onLogout={handleLogout} /></ProtectedRoute>} />
-        <Route path="/estudiante/leccion/:id" element={<ProtectedRoute><EstudianteLeccionView /></ProtectedRoute>} />
+        <Route path="/estudiante/leccion/:stepType" element={<ProtectedRoute><EstudianteLeccionView /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
