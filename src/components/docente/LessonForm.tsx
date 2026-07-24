@@ -96,7 +96,7 @@ export default function LessonForm() {
   } = useTeacherForm();
 
   return (
-    <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
+    <div className="bg-white rounded-[18px] p-5 md:p-6 w-full shadow-sm space-y-6">
       <div className="flex justify-between items-center border-b-2 border-slate-100 pb-4">
         <div>
           <h4 className="text-lg md:text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">

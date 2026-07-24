@@ -48,7 +48,7 @@ export default function LessonList() {
   };
 
   return (
-    <div className="bg-white border-2 border-slate-200 p-6 rounded-3xl shadow-sm space-y-4">
+    <div className="bg-white rounded-[18px] p-5 md:p-6 w-full shadow-sm space-y-4">
       <div className="flex justify-between items-center pb-3 border-b-2 border-slate-100">
         <h4 className="text-base md:text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-sky-500" />
@@ -102,9 +102,7 @@ export default function LessonList() {
                     <p className="text-xs md:text-sm text-slate-500 font-medium truncate mt-1">
                       <b>Estructura:</b> {les.formulaGramatica}
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5 font-semibold">
-                      {les.calentamiento.length} frases • {les.evaluacion.length} preg. examen
-                    </p>
+
                   </div>
                 </div>
 
