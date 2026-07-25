@@ -91,7 +91,7 @@ El proyecto implementa una plataforma interactiva de inglés tipo Duolingo con m
 
 ---
 
-### Fase 6 — Arquitectura (Riesgo Alto)
+### ✅ Fase 6 — Arquitectura (Riesgo Alto) — COMPLETADO
 
 | ID | Categoría | Prioridad | Archivo(s) | Descripción | Evidencia | Motivo | Riesgo | Recomendación |
 |---|---|---|---|---|---|---|---|---|
