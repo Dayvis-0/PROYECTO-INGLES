@@ -4,8 +4,10 @@ import { AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { supabase } from "../lib/supabase";
-import { getDocenteId } from "../lib/supabase-service";
 
+/**
+ * LoginView — consulta directa a la tabla usuario (nombre_usuario + contrasena).
+ */
 export default function LoginView() {
   const {
     currentUser,
@@ -19,10 +21,20 @@ export default function LoginView() {
   // Si ya hay sesión guardada, redirigir automáticamente
   useEffect(() => {
     if (!currentUser) return;
-    getDocenteId(currentUser).then((id) => {
-      navigate(id ? "/docente" : "/estudiante", { replace: true });
-    });
+    checkRoleAndRedirect(currentUser);
   }, [currentUser, navigate]);
+
+  const checkRoleAndRedirect = async (username: string) => {
+    const { data: docentes } = await supabase
+      .from("docente")
+      .select("id_docente")
+      .in("id_usuario", (
+        await supabase.from("usuario").select("id_usuario").eq("nombre_usuario", username)
+      ).data?.map(u => u.id_usuario) ?? [])
+      .limit(1);
+
+    navigate(docentes && docentes.length > 0 ? "/docente" : "/estudiante", { replace: true });
+  };
 
   const handleLoginSubmit = async (e?: FormEvent) => {
     if (e) e.preventDefault();
@@ -37,55 +49,32 @@ export default function LoginView() {
     }
 
     try {
-      // 1. Buscar usuario en Supabase
-      const { data: usuarios, error } = await supabase
+      // Consultar la BD directo (nombre_usuario + contrasena en texto plano)
+      const { data: user, error } = await supabase
         .from("usuario")
-        .select("*")
+        .select("nombre_usuario")
         .eq("nombre_usuario", username)
         .eq("contrasena", password)
-        .limit(1);
+        .maybeSingle();
 
       if (error) {
-        console.error("Error al consultar usuario:", error);
-        setLoginError("Error de conexión con la base de datos");
+        console.error("Error BD:", error);
+        setLoginError("Error al consultar usuario");
         return;
       }
 
-      if (!usuarios || usuarios.length === 0) {
+      if (!user) {
         setLoginError("Usuario o contraseña incorrectos");
         return;
       }
 
-      const usuario = usuarios[0];
+      // Login exitoso
+      setCurrentUser(user.nombre_usuario);
+      localStorage.setItem("unajma_current_user", user.nombre_usuario);
 
-      // 2. Verificar si es docente
-      const { data: docentes } = await supabase
-        .from("docente")
-        .select("id_docente")
-        .eq("id_usuario", usuario.id_usuario)
-        .limit(1);
+      // Redirigir según rol
+      await checkRoleAndRedirect(user.nombre_usuario);
 
-      if (docentes && docentes.length > 0) {
-        setCurrentUser(usuario.nombre_usuario);
-        navigate("/docente");
-        return;
-      }
-
-      // 3. Verificar si es estudiante
-      const { data: estudiantes } = await supabase
-        .from("estudiante")
-        .select("id_estudiante")
-        .eq("id_usuario", usuario.id_usuario)
-        .limit(1);
-
-      if (estudiantes && estudiantes.length > 0) {
-        setCurrentUser(usuario.nombre_usuario);
-        navigate("/estudiante");
-        return;
-      }
-
-      // 4. Existe pero no tiene rol asignado
-      setLoginError("El usuario no tiene un rol asignado (estudiante/docente)");
     } catch (err) {
       console.error("Error inesperado en login:", err);
       setLoginError("Error inesperado al iniciar sesión");

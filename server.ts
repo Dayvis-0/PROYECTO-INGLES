@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 
@@ -6,8 +7,17 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // Real-time proxy for High-Quality Text-To-Speech (Google Translate premium voice)
-  app.get("/api/tts", async (req, res) => {
+  // ─── Rate Limiting ─────────────────────────────────────
+  const ttsLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minuto
+    max: 20,             // máximo 20 requests por minuto por IP
+    message: { error: "Demasiadas solicitudes. Esperá un minuto antes de intentar de nuevo." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  // ─── TTS Proxy (con rate limiting) ─────────────────────
+  app.get("/api/tts", ttsLimiter, async (req, res) => {
     try {
       const text = req.query.text as string;
       if (!text) {

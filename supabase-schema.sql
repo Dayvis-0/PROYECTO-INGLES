@@ -24,7 +24,7 @@ CREATE TABLE usuario (
     id_usuario      SERIAL PRIMARY KEY,
     nombre_completo VARCHAR(30) NOT NULL,
     nombre_usuario  VARCHAR(25) UNIQUE NOT NULL,
-    contrasena      VARCHAR(30) NOT NULL,
+    auth_uid        UUID UNIQUE REFERENCES auth.users(id),
     created_at      TIMESTAMP DEFAULT NOW()
 );
 
@@ -143,7 +143,7 @@ CREATE TABLE resultado (
         REFERENCES leccion(id_leccion)
 );
 
--- ==================== RLS (abierto para desarrollo) ====================
+-- ==================== RLS (seguro — basado en auth.uid() y roles) ====================
 
 ALTER TABLE usuario ENABLE ROW LEVEL SECURITY;
 ALTER TABLE docente ENABLE ROW LEVEL SECURITY;
@@ -158,59 +158,206 @@ ALTER TABLE evaluacion ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pregunta ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resultado ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Lectura pública todas las tablas" ON usuario FOR SELECT USING (true);
-CREATE POLICY "Lectura pública todas las tablas" ON docente FOR SELECT USING (true);
-CREATE POLICY "Lectura pública todas las tablas" ON estudiante FOR SELECT USING (true);
-CREATE POLICY "Lectura pública todas las tablas" ON leccion FOR SELECT USING (true);
-CREATE POLICY "Lectura pública todas las tablas" ON vocabulario FOR SELECT USING (true);
-CREATE POLICY "Lectura pública todas las tablas" ON gramatica FOR SELECT USING (true);
-CREATE POLICY "Lectura pública todas las tablas" ON construccion_oracion FOR SELECT USING (true);
-CREATE POLICY "Lectura pública todas las tablas" ON palabra_construccion FOR SELECT USING (true);
-CREATE POLICY "Lectura pública todas las tablas" ON pronunciacion FOR SELECT USING (true);
-CREATE POLICY "Lectura pública todas las tablas" ON evaluacion FOR SELECT USING (true);
-CREATE POLICY "Lectura pública todas las tablas" ON pregunta FOR SELECT USING (true);
-CREATE POLICY "Lectura pública todas las tablas" ON resultado FOR SELECT USING (true);
+-- ==================== Helper: es docente? ====================
+-- Función reutilizable para políticas
+CREATE OR REPLACE FUNCTION public.is_docente()
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM docente d
+        JOIN usuario u ON u.id_usuario = d.id_usuario
+        WHERE u.auth_uid = auth.uid()
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 
-CREATE POLICY "Insert público" ON usuario FOR INSERT WITH CHECK (true);
-CREATE POLICY "Insert público" ON docente FOR INSERT WITH CHECK (true);
-CREATE POLICY "Insert público" ON estudiante FOR INSERT WITH CHECK (true);
-CREATE POLICY "Insert público" ON leccion FOR INSERT WITH CHECK (true);
-CREATE POLICY "Insert público" ON vocabulario FOR INSERT WITH CHECK (true);
-CREATE POLICY "Insert público" ON gramatica FOR INSERT WITH CHECK (true);
-CREATE POLICY "Insert público" ON construccion_oracion FOR INSERT WITH CHECK (true);
-CREATE POLICY "Insert público" ON palabra_construccion FOR INSERT WITH CHECK (true);
-CREATE POLICY "Insert público" ON pronunciacion FOR INSERT WITH CHECK (true);
-CREATE POLICY "Insert público" ON evaluacion FOR INSERT WITH CHECK (true);
-CREATE POLICY "Insert público" ON pregunta FOR INSERT WITH CHECK (true);
-CREATE POLICY "Insert público" ON resultado FOR INSERT WITH CHECK (true);
+-- ==================== Helper: es estudiante? ====================
+CREATE OR REPLACE FUNCTION public.is_estudiante()
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM estudiante e
+        JOIN usuario u ON u.id_usuario = e.id_usuario
+        WHERE u.auth_uid = auth.uid()
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 
-CREATE POLICY "Update público" ON resultado FOR UPDATE USING (true) WITH CHECK (true);
-CREATE POLICY "Update público" ON leccion FOR UPDATE USING (true) WITH CHECK (true);
+-- ==================== usuario ====================
+-- El usuario puede leer/actualizar su propio registro.
+-- Los docentes pueden leer TODOS los usuarios (para monitoreo de calificaciones).
+CREATE POLICY "usuario_select_own_or_docente" ON usuario
+    FOR SELECT USING (
+        auth_uid = auth.uid()
+        OR public.is_docente()
+    );
+CREATE POLICY "usuario_update_own" ON usuario
+    FOR UPDATE USING (auth_uid = auth.uid()) WITH CHECK (auth_uid = auth.uid());
 
-CREATE POLICY "Delete público" ON palabra_construccion FOR DELETE USING (true);
-CREATE POLICY "Delete público" ON pregunta FOR DELETE USING (true);
-CREATE POLICY "Delete público" ON resultado FOR DELETE USING (true);
-CREATE POLICY "Delete público" ON construccion_oracion FOR DELETE USING (true);
-CREATE POLICY "Delete público" ON vocabulario FOR DELETE USING (true);
-CREATE POLICY "Delete público" ON gramatica FOR DELETE USING (true);
-CREATE POLICY "Delete público" ON pronunciacion FOR DELETE USING (true);
-CREATE POLICY "Delete público" ON evaluacion FOR DELETE USING (true);
-CREATE POLICY "Delete público" ON leccion FOR DELETE USING (true);
-CREATE POLICY "Delete público" ON estudiante FOR DELETE USING (true);
-CREATE POLICY "Delete público" ON docente FOR DELETE USING (true);
-CREATE POLICY "Delete público" ON usuario FOR DELETE USING (true);
+-- ==================== docente ====================
+CREATE POLICY "docente_select_auth" ON docente
+    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "docente_insert_own" ON docente
+    FOR INSERT WITH CHECK (id_usuario IN (SELECT id_usuario FROM usuario WHERE auth_uid = auth.uid()));
+CREATE POLICY "docente_update_own" ON docente
+    FOR UPDATE USING (id_usuario IN (SELECT id_usuario FROM usuario WHERE auth_uid = auth.uid()))
+    WITH CHECK (id_usuario IN (SELECT id_usuario FROM usuario WHERE auth_uid = auth.uid()));
+CREATE POLICY "docente_delete_own" ON docente
+    FOR DELETE USING (id_usuario IN (SELECT id_usuario FROM usuario WHERE auth_uid = auth.uid()));
+
+-- ==================== estudiante ====================
+CREATE POLICY "estudiante_select_auth" ON estudiante
+    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "estudiante_insert_own" ON estudiante
+    FOR INSERT WITH CHECK (id_usuario IN (SELECT id_usuario FROM usuario WHERE auth_uid = auth.uid()));
+CREATE POLICY "estudiante_update_own" ON estudiante
+    FOR UPDATE USING (id_usuario IN (SELECT id_usuario FROM usuario WHERE auth_uid = auth.uid()))
+    WITH CHECK (id_usuario IN (SELECT id_usuario FROM usuario WHERE auth_uid = auth.uid()));
+CREATE POLICY "estudiante_delete_own" ON estudiante
+    FOR DELETE USING (id_usuario IN (SELECT id_usuario FROM usuario WHERE auth_uid = auth.uid()));
+
+-- ==================== leccion ====================
+CREATE POLICY "leccion_select_auth" ON leccion
+    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "leccion_insert_docente" ON leccion
+    FOR INSERT WITH CHECK (public.is_docente());
+CREATE POLICY "leccion_update_docente" ON leccion
+    FOR UPDATE USING (public.is_docente()) WITH CHECK (public.is_docente());
+CREATE POLICY "leccion_delete_docente" ON leccion
+    FOR DELETE USING (public.is_docente());
+
+-- ==================== vocabulario ====================
+CREATE POLICY "vocabulario_select_auth" ON vocabulario
+    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "vocabulario_insert_docente" ON vocabulario
+    FOR INSERT WITH CHECK (public.is_docente());
+CREATE POLICY "vocabulario_update_docente" ON vocabulario
+    FOR UPDATE USING (public.is_docente()) WITH CHECK (public.is_docente());
+CREATE POLICY "vocabulario_delete_docente" ON vocabulario
+    FOR DELETE USING (public.is_docente());
+
+-- ==================== gramatica ====================
+CREATE POLICY "gramatica_select_auth" ON gramatica
+    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "gramatica_insert_docente" ON gramatica
+    FOR INSERT WITH CHECK (public.is_docente());
+CREATE POLICY "gramatica_update_docente" ON gramatica
+    FOR UPDATE USING (public.is_docente()) WITH CHECK (public.is_docente());
+CREATE POLICY "gramatica_delete_docente" ON gramatica
+    FOR DELETE USING (public.is_docente());
+
+-- ==================== construccion_oracion ====================
+CREATE POLICY "construccion_select_auth" ON construccion_oracion
+    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "construccion_insert_docente" ON construccion_oracion
+    FOR INSERT WITH CHECK (public.is_docente());
+CREATE POLICY "construccion_update_docente" ON construccion_oracion
+    FOR UPDATE USING (public.is_docente()) WITH CHECK (public.is_docente());
+CREATE POLICY "construccion_delete_docente" ON construccion_oracion
+    FOR DELETE USING (public.is_docente());
+
+-- ==================== palabra_construccion ====================
+CREATE POLICY "palabra_select_auth" ON palabra_construccion
+    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "palabra_insert_docente" ON palabra_construccion
+    FOR INSERT WITH CHECK (public.is_docente());
+CREATE POLICY "palabra_update_docente" ON palabra_construccion
+    FOR UPDATE USING (public.is_docente()) WITH CHECK (public.is_docente());
+CREATE POLICY "palabra_delete_docente" ON palabra_construccion
+    FOR DELETE USING (public.is_docente());
+
+-- ==================== pronunciacion ====================
+CREATE POLICY "pronunciacion_select_auth" ON pronunciacion
+    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "pronunciacion_insert_docente" ON pronunciacion
+    FOR INSERT WITH CHECK (public.is_docente());
+CREATE POLICY "pronunciacion_update_docente" ON pronunciacion
+    FOR UPDATE USING (public.is_docente()) WITH CHECK (public.is_docente());
+CREATE POLICY "pronunciacion_delete_docente" ON pronunciacion
+    FOR DELETE USING (public.is_docente());
+
+-- ==================== evaluacion ====================
+CREATE POLICY "evaluacion_select_auth" ON evaluacion
+    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "evaluacion_insert_docente" ON evaluacion
+    FOR INSERT WITH CHECK (public.is_docente());
+CREATE POLICY "evaluacion_update_docente" ON evaluacion
+    FOR UPDATE USING (public.is_docente()) WITH CHECK (public.is_docente());
+CREATE POLICY "evaluacion_delete_docente" ON evaluacion
+    FOR DELETE USING (public.is_docente());
+
+-- ==================== pregunta ====================
+CREATE POLICY "pregunta_select_auth" ON pregunta
+    FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "pregunta_insert_docente" ON pregunta
+    FOR INSERT WITH CHECK (public.is_docente());
+CREATE POLICY "pregunta_update_docente" ON pregunta
+    FOR UPDATE USING (public.is_docente()) WITH CHECK (public.is_docente());
+CREATE POLICY "pregunta_delete_docente" ON pregunta
+    FOR DELETE USING (public.is_docente());
+
+-- ==================== resultado ====================
+CREATE POLICY "resultado_select_own_or_docente" ON resultado
+    FOR SELECT USING (
+        id_estudiante IN (SELECT e.id_estudiante FROM estudiante e JOIN usuario u ON u.id_usuario = e.id_usuario WHERE u.auth_uid = auth.uid())
+        OR public.is_docente()
+    );
+CREATE POLICY "resultado_insert_own" ON resultado
+    FOR INSERT WITH CHECK (
+        id_estudiante IN (SELECT e.id_estudiante FROM estudiante e JOIN usuario u ON u.id_usuario = e.id_usuario WHERE u.auth_uid = auth.uid())
+    );
+CREATE POLICY "resultado_update_own" ON resultado
+    FOR UPDATE USING (
+        id_estudiante IN (SELECT e.id_estudiante FROM estudiante e JOIN usuario u ON u.id_usuario = e.id_usuario WHERE u.auth_uid = auth.uid())
+    ) WITH CHECK (
+        id_estudiante IN (SELECT e.id_estudiante FROM estudiante e JOIN usuario u ON u.id_usuario = e.id_usuario WHERE u.auth_uid = auth.uid())
+    );
 
 -- ==================== DATOS INICIALES ====================
 
 -- 1. USUARIOS
-INSERT INTO usuario (nombre_completo, nombre_usuario, contrasena) VALUES
-('Estudiante', 'estudiante', '1234'),
-('Docente', 'docente', '1234');
+INSERT INTO usuario (nombre_completo, nombre_usuario) VALUES
+('Estudiante', 'estudiante'),
+('Docente', 'docente');
 
--- 2. DOCENTE (id_usuario = 2)
+-- 2. CREAR USUARIOS EN SUPABASE AUTH (para que login funcione)
+-- Contraseña para ambos: 1234
+-- Email: {nombre_usuario}@learn-english.app
+DO $$
+DECLARE
+    user_record RECORD;
+    new_user_id UUID;
+BEGIN
+    FOR user_record IN SELECT * FROM usuario WHERE auth_uid IS NULL
+    LOOP
+        INSERT INTO auth.users (
+            instance_id, id, aud, role, email, encrypted_password,
+            email_confirmed_at, confirmation_token, recovery_token,
+            raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+            confirmation_sent_at
+        ) VALUES (
+            '00000000-0000-0000-0000-000000000000',
+            gen_random_uuid(),
+            'authenticated',
+            'authenticated',
+            user_record.nombre_usuario || '@learn-english.app',
+            crypt('1234', gen_salt('bf')),
+            NOW(), '', '',
+            '{"provider":"email","providers":["email"]}',
+            jsonb_build_object('nombre_usuario', user_record.nombre_usuario, 'nombre_completo', user_record.nombre_completo),
+            NOW(), NOW(),
+            NOW()
+        )
+        RETURNING id INTO new_user_id;
+
+        UPDATE usuario SET auth_uid = new_user_id WHERE id_usuario = user_record.id_usuario;
+    END LOOP;
+END $$;
+
+-- 3. DOCENTE (id_usuario = 2)
 INSERT INTO docente (id_usuario) VALUES (2);
 
--- 3. ESTUDIANTES (id_usuario = 1)
+-- 4. ESTUDIANTES (id_usuario = 1)
 INSERT INTO estudiante (id_usuario) VALUES (1);
 
 -- ==================== LECCIÓN 1: PRESENT SIMPLE ====================

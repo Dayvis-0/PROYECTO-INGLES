@@ -44,9 +44,9 @@ function AppShell() {
     <div className="min-h-screen w-full flex flex-col bg-[#f7f7f7] text-[#3c3c3c]">
       <Routes>
         <Route path="/" element={<LoginView />} />
-        <Route path="/docente" element={<ProtectedRoute><DocenteView onLogout={handleLogout} /></ProtectedRoute>} />
-        <Route path="/estudiante" element={<ProtectedRoute><EstudianteHomeView onLogout={handleLogout} /></ProtectedRoute>} />
-        <Route path="/estudiante/leccion/:stepType" element={<ProtectedRoute><EstudianteLeccionView /></ProtectedRoute>} />
+        <Route path="/docente" element={<ProtectedRoute allowedRoles={["docente"]}><DocenteView onLogout={handleLogout} /></ProtectedRoute>} />
+        <Route path="/estudiante" element={<ProtectedRoute allowedRoles={["estudiante"]}><EstudianteHomeView onLogout={handleLogout} /></ProtectedRoute>} />
+        <Route path="/estudiante/leccion/:stepType" element={<ProtectedRoute allowedRoles={["estudiante"]}><EstudianteLeccionView /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
