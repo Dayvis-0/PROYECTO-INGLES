@@ -37,8 +37,7 @@ export default function EstudianteLeccionView() {
     const screen = flatScreens[flatScreenIndex];
     if (!screen) return;
     navigate(`/estudiante/leccion/${screen.type}`, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flatScreenIndex, walkthroughActive]);
+  }, [flatScreenIndex, walkthroughActive, navigate, flatScreens, activeLesson]);
 
   const { handleCheckAnswer, handleContinueWalkthrough } = useWalkthrough();
   const [showExitConfirm, setShowExitConfirm] = useState(false);

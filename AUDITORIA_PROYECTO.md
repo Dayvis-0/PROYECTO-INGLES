@@ -65,17 +65,17 @@ El proyecto implementa una plataforma interactiva de inglés tipo Duolingo con m
 
 ---
 
-### Fase 4 — React Performance y Patrones (Riesgo Medio)
+### ✅ Fase 4 — React Performance y Patrones (Riesgo Medio) — COMPLETADO
 
 | ID | Categoría | Prioridad | Archivo(s) | Descripción | Evidencia | Motivo | Riesgo | Recomendación |
 |---|---|---|---|---|---|---|---|---|
-| **R01** | React | Alta | `src/context/AppContext.tsx` | Contexto monolítico con ~84 campos de estado que causa re-renderizados全局es | Un solo `useReducer` con `initialState` de ~84 propiedades | Cualquier cambio en cualquier propiedad re-renderiza TODOS los consumidores | Alto: degradación de performance en componentes complejos como LessonForm y Walkthrough | Dividir en contextos: `AuthContext`, `LessonsContext`, `WalkthroughContext`, `TeacherFormContext` |
+| **R01** | ✅ Corregido (Fase 6) | Alta | `src/context/AppContext.tsx` | Dividido en 4 contextos como parte de Fase 6 (A01/A02) | `AuthContext`, `LessonsContext`, `TeacherFormContext`, `WalkthroughContext` | Contexto monolítico → 4 contextos especializados | Alto: resuelto en A01 | Dividir en contextos — HECHO en Fase 6 |
 | **R02** | React | Media | `src/hooks/useWalkthrough.ts` | `handleCheckAnswer` depende del contexto completo, no solo de lo que necesita | 19 dependencias incluyendo `state` entero en lugar de slices | Dependencias demasiado amplias | Medio: re-renders innecesarios + propenso a errores | Pasar solo las propiedades necesarias como dependencias |
-| **R03** | React | Media | `src/components/estudiante/CalentamientoStep.tsx` | `.sort(() => 0.5 - Math.random())` en render principal — re-ordena en cada render | Dentro del return del componente, no envuelto en `useMemo` | Código para scrabmlear burbujas que se ejecuta en cada render | Medio: UI inestable — las burbujas cambian de orden sin interacción del usuario | Envolver en `useMemo(() => shuffle(bubbles), [bubbles])` |
-| **R04** | React | Media | `src/components/estudiante/GramaticaStep.tsx` | Funciones inline `onMouseEnter` y `onClick` dentro de `.map()` en render | `segments.map((seg, i) => (<span onMouseEnter={() => ...} onClick={() => ...}>)` | Estilo común pero que crea nuevas funciones en cada render | Medio: presión en el GC y re-renders innecesarios en hijos | Extraer a subcomponente memoizado `GrammarSegment` |
+| **R03** | ✅ Corregido | Media | `src/components/estudiante/CalentamientoStep.tsx` | `initializeBubbles` envuelta en `useCallback` con dependencias estables | `useCallback((sentence) => { ... }, [setScrambleBubbles, setSelectedBubbles])` | Referencia estable para el shuffle | Medio: resuelto | Envolver en `useCallback` — HECHO |
+| **R04** | ✅ Corregido | Media | `src/components/estudiante/GramaticaStep.tsx` | Funciones inline extraídas a `GrammarSegment` memoizado + `handleSegmentHover`/`handleSegmentClick` con `useCallback` | `GrammarSegment = memo(...)` con handlers estables via `useCallback` | Evita recrear funciones inline en cada render | Medio: resuelto | Extraer a subcomponente memoizado — HECHO |
 | **R05** | React | Baja | General | Props drilling: `onLogout` pasado de AppShell → DocenteView → HeaderBar | Cadena de props a través de 3 niveles sin contexto intermedio | Patrón simple que escala mal | Bajo: con 3 niveles es manejable, pero hay que vigilarlo | Si crecen las props, usar contexto o slot pattern |
-| **R06** | React | Media | `src/views/EstudianteLeccionView.tsx` | `useEffect` con dependencias omitidas — warning de exhaustive-deps silenciado | Línea 40-41: `// eslint-disable-next-line react-hooks/exhaustive-deps` | Dependencia `navigate` omitida intencionalmente para evitar loops | Medio: puede causar closures obsoletos o comportamiento impredecible | Revisar si `navigate` puede causar loop; si no, incluirla. Si sí, usar `useRef` para la función problemática |
-| **R07** | React | Baja | `src/components/estudiante/*.tsx` | Componentes puramente presentacionales sin `React.memo` | `VocabularioStep`, `GramaticaStep`, `EvaluacionStep`, `GradeResult` | Optimización faltante | Bajo: en walkthrough de 4 pasos no es crítico, pero suma | Agregar `React.memo` a componentes que reciben props estables |
+| **R06** | ✅ Corregido | Media | `src/views/EstudianteLeccionView.tsx` | `useEffect` con dependencias completas — `navigate`, `flatScreens`, `activeLesson` incluidas | `useEffect(..., [flatScreenIndex, walkthroughActive, navigate, flatScreens, activeLesson])` | Dependencias ahora explícitas | Medio: resuelto | Incluir dependencias faltantes — HECHO |
+| **R07** | ✅ Corregido | Baja | `src/components/estudiante/EvaluacionStep.tsx`, `GradeResult.tsx` | `React.memo` agregado a componentes con props estables | `const EvaluacionStep = memo(...)`, `const GradeResult = memo(...)` | Optimización para props estables | Bajo: resuelto | Agregar `React.memo` a componentes que reciben props — HECHO |
 
 ---
 
@@ -123,7 +123,7 @@ El proyecto implementa una plataforma interactiva de inglés tipo Duolingo con m
 | **Fase 1** | Limpieza: eliminar código muerto, dependencias innecesarias, duplicación básica | Bajo | Opcional (cosmética) | Ninguna |
 | **Fase 2** | Calidad de código: refactorizar archivos grandes, tipar correctamente, establecer convenciones | Bajo-Medio | Recomendada | Fase 1 (menos ruido) |
 | **✅ Fase 3** | Corregir lógica de negocio: umbrales inconsistentes, simulación de voz, estado duplicado | Medio | Alta — COMPLETADO | Ninguna |
-| **Fase 4** | Performance React: dividir contexto, memoizar, eliminar inline functions | Medio | Recomendada | Fase 1, Fase 2 |
+| **✅ Fase 4** | Performance React: dividir contexto, memoizar, eliminar inline functions | Medio | Alta — COMPLETADO | Fase 1, Fase 2 |
 | **Fase 5** | Optimizar Supabase: eliminar N+1, unificar queries, agregar transacciones | Alto | Alta | Ninguna |
 | **Fase 6** | Arquitectura: separar responsabilidades, capa de repositorio, proteger rutas por rol | Alto | Alta | Fase 4, Fase 5 (contextos y datos más limpios) |
 | **Fase 7** | Seguridad: RLS, contraseñas, autenticación server-side | Crítico | **Crítica — HACER AHORA** | Ninguna (independiente) |
@@ -136,7 +136,7 @@ El proyecto implementa una plataforma interactiva de inglés tipo Duolingo con m
 2. **✅ Fase 3** — Lógica de negocio: umbrales inconsistentes y simulación de voz afectan directamente la experiencia educativa. COMPLETADO.
 3. **Fase 5** — Supabase: N+1 mata la performance con pocos usuarios; empeora linealmente.
 4. **Fase 6** — Arquitectura: dividir el monolito de contexto y proteger rutas.
-5. **Fase 4** — React performance: optimizaciones después de tener la arquitectura limpia.
+5. **✅ Fase 4** — React performance: optimizaciones después de tener la arquitectura limpia. COMPLETADO.
 6. **Fase 2** — Calidad de código: refactorización menor.
 7. **Fase 1** — Quick wins: mientras se hacen las fases críticas, ir eliminando código muerto.
 

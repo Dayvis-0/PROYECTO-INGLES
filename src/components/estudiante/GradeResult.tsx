@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Award, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
@@ -8,7 +9,7 @@ interface Props {
   totalExamQuestions: number;
 }
 
-export default function GradeResult({ activeLessonTitle, totalExamQuestions }: Props) {
+const GradeResult = memo(function GradeResult({ activeLessonTitle, totalExamQuestions }: Props) {
   const navigate = useNavigate();
 
   const {
@@ -118,4 +119,6 @@ export default function GradeResult({ activeLessonTitle, totalExamQuestions }: P
       </div>
     </div>
   );
-}
+});
+
+export default GradeResult;

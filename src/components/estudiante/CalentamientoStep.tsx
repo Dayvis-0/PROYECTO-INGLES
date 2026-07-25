@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { speakWord } from "../../utils/tts";
 import { useAppContext } from "../../context/AppContext";
 
@@ -14,7 +15,7 @@ export default function CalentamientoStep({ subIndex }: { subIndex: number }) {
 
   const warmupObj = activeLesson.calentamiento[subIndex];
 
-  const initializeBubbles = (sentence: string) => {
+  const initializeBubbles = useCallback((sentence: string) => {
     const mainWords = sentence.split(/\s+/).map((w) => w.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, ""));
     const distractors = ["the", "at", "with", "coding", "everyday", "park", "always", "English"];
     const filteredDistractors = distractors.filter(
@@ -24,7 +25,7 @@ export default function CalentamientoStep({ subIndex }: { subIndex: number }) {
     const finalSelection = [...mainWords, ...chosenDistractors].sort(() => 0.5 - Math.random());
     setScrambleBubbles(finalSelection);
     setSelectedBubbles([]);
-  };
+  }, [setScrambleBubbles, setSelectedBubbles]);
 
   return (
     <div className="space-y-4 w-full">

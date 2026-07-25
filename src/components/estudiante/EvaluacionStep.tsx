@@ -1,8 +1,9 @@
+import { memo } from "react";
 import { GraduationCap } from "lucide-react";
 import { speakWord } from "../../utils/tts";
 import { useAppContext } from "../../context/AppContext";
 
-export default function EvaluacionStep({ subIndex }: { subIndex: number }) {
+const EvaluacionStep = memo(function EvaluacionStep({ subIndex }: { subIndex: number }) {
   const { activeLesson, selectedExamOptionIndex, setSelectedExamOptionIndex } = useAppContext();
   if (!activeLesson) return null;
 
@@ -51,4 +52,6 @@ export default function EvaluacionStep({ subIndex }: { subIndex: number }) {
       </div>
     </div>
   );
-}
+});
+
+export default EvaluacionStep;

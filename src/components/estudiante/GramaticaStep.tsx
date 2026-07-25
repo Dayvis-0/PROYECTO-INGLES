@@ -1,8 +1,38 @@
+import { memo, useCallback } from "react";
 import { speakWord } from "../../utils/tts";
 import { playTone } from "../../utils/audio";
 import { getInteractiveGrammarSegments } from "../../utils/grammar";
 import { DEFAULT_GRAMATICA_COLUMNAS, DEFAULT_GRAMATICA_TITULO, DEFAULT_GRAMATICA_DESC } from "../../data";
 import { useAppContext } from "../../context/AppContext";
+
+/** Subcomponente memoizado para cada segmento de gramática — handlers recibidos por prop + idx. */
+const GrammarSegment = memo(function GrammarSegment({
+  word,
+  isActive,
+  idx,
+  onHover,
+  onClick,
+}: {
+  word: string;
+  isActive: boolean;
+  idx: number;
+  onHover: (idx: number) => void;
+  onClick: (idx: number) => void;
+}) {
+  return (
+    <span
+      onMouseEnter={() => onHover(idx)}
+      onClick={() => onClick(idx)}
+      className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors duration-150 ${
+        isActive
+          ? "text-[#1cb0f6] underline decoration-3 underline-offset-4 font-black bg-sky-50/65"
+          : "text-slate-800 hover:text-[#1cb0f6] hover:bg-slate-50/40"
+      }`}
+    >
+      {word}
+    </span>
+  );
+});
 
 export default function GramaticaStep() {
   const { activeLesson, activeHoverGrammarWord, setActiveHoverGrammarWord } =
@@ -10,6 +40,24 @@ export default function GramaticaStep() {
   if (!activeLesson) return null;
 
   const segments = getInteractiveGrammarSegments(activeLesson);
+  const segmentsLen = segments.length;
+
+  // Handlers estables — no se recrean en cada render
+  const handleSegmentHover = useCallback(
+    (idx: number) => {
+      setActiveHoverGrammarWord(idx);
+      playTone(420 + idx * 35, 0.012, 0.05);
+    },
+    [setActiveHoverGrammarWord],
+  );
+
+  const handleSegmentClick = useCallback(
+    (idx: number) => {
+      setActiveHoverGrammarWord(idx);
+      speakWord(segments[idx]?.word ?? "");
+    },
+    [setActiveHoverGrammarWord, segments],
+  );
 
   // ── helpers ──────────────────────────────────────────────
 
@@ -105,33 +153,20 @@ export default function GramaticaStep() {
           </span>
 
           <div className="flex justify-center flex-wrap items-center gap-x-2 gap-y-1 text-xl md:text-2xl font-black text-slate-800 leading-relaxed select-none">
-            {segments.map((seg, sIdx) => {
-              const isActive = activeHoverGrammarWord === sIdx;
-              return (
-                <span
-                  key={sIdx}
-                  onMouseEnter={() => {
-                    setActiveHoverGrammarWord(sIdx);
-                    playTone(420 + sIdx * 35, 0.012, 0.05);
-                  }}
-                  onClick={() => {
-                    setActiveHoverGrammarWord(sIdx);
-                    speakWord(seg.word);
-                  }}
-                  className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors duration-150 ${
-                    isActive
-                      ? "text-[#1cb0f6] underline decoration-3 underline-offset-4 font-black bg-sky-50/65"
-                      : "text-slate-800 hover:text-[#1cb0f6] hover:bg-slate-50/40"
-                  }`}
-                >
-                  {seg.word}
-                </span>
-              );
-            })}
+            {segments.map((seg, sIdx) => (
+              <GrammarSegment
+                key={sIdx}
+                word={seg.word}
+                isActive={activeHoverGrammarWord === sIdx}
+                idx={sIdx}
+                onHover={handleSegmentHover}
+                onClick={handleSegmentClick}
+              />
+            ))}
           </div>
 
           <div className="h-8 flex items-center justify-center border-t border-slate-100 pt-3">
-            {activeHoverGrammarWord !== null && segments[activeHoverGrammarWord] ? (
+            {activeHoverGrammarWord !== null && activeHoverGrammarWord < segmentsLen && segments[activeHoverGrammarWord] ? (
               <span className="text-xs font-black uppercase tracking-wider text-[#1cb0f6] bg-sky-50/70 px-3 py-1 rounded-full border border-sky-100/60 animate-fade-in shadow-xs">
                 {segments[activeHoverGrammarWord].role}
               </span>
