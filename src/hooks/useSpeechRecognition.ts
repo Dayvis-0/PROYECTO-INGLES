@@ -5,7 +5,6 @@ import {
   isSpeechRecognitionSupported,
   createSpeechRecognition,
   getSpeechErrorMessage,
-  createSimulatedResult,
 } from "../utils/speech";
 import { useAppContext } from "../context/AppContext";
 
@@ -39,17 +38,32 @@ export function useSpeechRecognition() {
     }
   }, []);
 
-  const runSimulation = useCallback(
-    (targetSentence: string, delay: number, similarity: number = 95) => {
-      setIsListeningVoice(true);
-      setTimeout(() => {
-        setIsListeningVoice(false);
-        const result = createSimulatedResult(targetSentence, similarity);
-        setVoiceTranscript(result.transcript);
-        setVoiceSimilarity(result.similarity);
-      }, delay);
+  /**
+   * Compara un texto ingresado manualmente contra la frase objetivo
+   * y asigna un puntaje de similitud (usado cuando la API de voz falla).
+   */
+  const checkManualInput = useCallback(
+    (targetSentence: string, typedText: string) => {
+      const tWords = cleanCompare(targetSentence)
+        .split(" ")
+        .filter(Boolean);
+      const rWords = cleanCompare(typedText)
+        .split(" ")
+        .filter(Boolean);
+      let matchCount = 0;
+      tWords.forEach((tWord) => {
+        const hasMatch = rWords.some((rWord) =>
+          isWordSimilarityMatch(tWord, rWord)
+        );
+        if (hasMatch) matchCount++;
+      });
+      const pct = Math.round(
+        (matchCount / Math.max(tWords.length, rWords.length || 1)) * 100
+      );
+      setVoiceTranscript(typedText);
+      setVoiceSimilarity(Math.min(pct, 100));
     },
-    [setIsListeningVoice, setVoiceTranscript, setVoiceSimilarity]
+    [setVoiceTranscript, setVoiceSimilarity]
   );
 
   const startVoiceRecording = useCallback(
@@ -59,10 +73,9 @@ export function useSpeechRecognition() {
 
       if (!isSpeechRecognitionSupported()) {
         setSpeechError(
-          "La API de reconocimiento de voz no está soportada en tu navegador (usa Chrome, Edge o Safari). Iniciando práctica simulada para que continúes sin detenerte."
+          "La API de reconocimiento de voz no está soportada en tu navegador (usa Chrome, Edge o Safari). Escribí la frase manualmente abajo."
         );
-        runSimulation(targetSentence, 2000, 100);
-        setTimeout(() => setSpeechError(null), 2500);
+        setIsListeningVoice(false);
         return;
       }
 
@@ -103,8 +116,9 @@ export function useSpeechRecognition() {
 
         rec.onerror = (err: any) => {
           console.error("Speech Recognition Error", err);
+          setIsListeningVoice(false);
           setSpeechError(getSpeechErrorMessage(err.error || "unknown"));
-          runSimulation(targetSentence, 1800);
+          // NO simular — el usuario escribe manualmente
         };
 
         rec.onend = () => {
@@ -115,9 +129,9 @@ export function useSpeechRecognition() {
       } catch (e) {
         console.error(e);
         setSpeechError(
-          "No se pudo conectar con el servicio de voz. Iniciando simulación."
+          "No se pudo conectar con el servicio de voz. Escribí la frase manualmente abajo."
         );
-        runSimulation(targetSentence, 1500);
+        // NO simular — el usuario escribe manualmente
       }
     },
     [
@@ -126,9 +140,8 @@ export function useSpeechRecognition() {
       setVoiceSimilarity,
       setSpeechError,
       stopVoiceRecording,
-      runSimulation,
     ]
   );
 
-  return { recognitionRef, startVoiceRecording, stopVoiceRecording };
+  return { recognitionRef, startVoiceRecording, stopVoiceRecording, checkManualInput };
 }

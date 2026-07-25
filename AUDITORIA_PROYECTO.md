@@ -51,15 +51,15 @@ El proyecto implementa una plataforma interactiva de inglés tipo Duolingo con m
 
 ---
 
-### Fase 3 — Lógica de Negocio (Riesgo Medio)
+### ✅ Fase 3 — Lógica de Negocio (Riesgo Medio) — COMPLETADO
 
 | ID | Categoría | Prioridad | Archivo(s) | Descripción | Evidencia | Motivo | Riesgo | Recomendación |
 |---|---|---|---|---|---|---|---|---|
 | **BL01** | Lógica | Alta | `src/hooks/useWalkthrough.ts`, `CalentamientoStep.tsx` | Estado de burbujas duplicado entre componente y hook | `CalentamientoStep` tiene su propio estado de burbujas + `useWalkthrough` también maneja avance | Dos fuentes de verdad para el mismo UI state | Alto: comportamientos inconsistentes si uno se actualiza sin el otro | Mover todo el estado de burbujas a `useWalkthrough` o al contexto, y que `CalentamientoStep` solo renderice |
 | **BL02** | Lógica | Media | `src/hooks/useWalkthrough.ts` | `handleCheckAnswer` tiene 19 dependencias y verifica 5 tipos de respuestas diferentes | `useCallback` con 19 items en `[]`, switches por `currentLesson.type` | Función viola SRP: sabe de vocabulario, gramática, construcción, pronunciación Y evaluación | Medio: difícil de modificar sin romper algo | Dividir en 5 funciones especializadas + un dispatch central |
 | **BL03** | Lógica | Media | `src/hooks/useWalkthrough.ts` | `handleContinueWalkthrough` tiene 20+ dependencias y mezcla UI state con lógica de negocio | Mismo patrón que BL02: resetea UI, calcula nota, guarda en Supabase | Dos responsabilidades en una función | Medio: difícil de testear y mantener | Separar en: `calculateGrade()`, `saveGrade()`, `resetUI()` |
-| **BL04** | Lógica | Alta | `src/utils/speech.ts`, `src/hooks/useSpeechRecognition.ts` | `runSimulation` da puntuación perfecta automática cuando la API de voz falla | `setTranscript(voiceTranscript); setSimilarity(100);` tras 1500ms si no hay Speech API | Fallback silencioso que otorga 100% sin interacción real | Alto: estudiantes pueden obtener nota máxima sin hablar | Mostrar mensaje "Speech no disponible" y requerir input manual, no simular |
-| **BL05** | Lógica | Media | `src/components/estudiante/GradeResult.tsx`, `src/lib/supabase-service.ts` | Umbrales de aprobación inconsistentes: 15 vs 11 | `GradeResult`: `gainedGrade >= 15`, `saveCalificacion`: `nota >= 11` | Dos equipos o dos momentos definieron el umbral | Medio: un estudiante puede ver "aprobado" en UI pero "desaprobado" en BD o viceversa | Unificar umbral en una constante `PASS_THRESHOLD` en `constants.ts` |
+| **BL04** | ✅ Corregido | Alta | `src/hooks/useSpeechRecognition.ts`, `src/components/estudiante/PronunciacionStep.tsx` | `runSimulation` eliminada. Cuando la API de voz falla, se muestra un input de texto para que el usuario escriba la frase manualmente y se lo califica según lo que escribió, no simulando 100%. |
+| **BL05** | ✅ Corregido | Media | `src/constants.ts` | Umbral unificado en `PASS_THRESHOLD = 14`. Tanto `GradeResult` como `saveCalificacion` usan la misma constante. |
 | **BL06** | Lógica | Media | `src/hooks/useWalkthrough.ts`, `src/lib/supabase-service.ts` | `saveCalificacion` retorna silenciosamente si ya existe calificación + frontend también verifica | `if (existingCalificacion) return;` en service + `if (existingIndex !== -1) return;` en frontend | Doble guardia que debería ser una sola | Medio: doble verificación pero sin consistencia garantizada | Decidir si la responsabilidad es del frontend o backend (ideal: backend con UPDATE + upsert) |
 | **BL07** | Lógica | Media | `src/utils/similarity.ts`, `src/utils/cleaners.ts` | `cleanCompare` no normaliza contracciones ("don't" vs "dont") | Regex solo elimina puntuación básica | Omisión en el diseño del comparador | Medio: falsos negativos en respuestas de construcción/oración | Agregar normalización de contracciones: `don't` → `dont`, `it's` → `its`, etc. |
 
@@ -122,7 +122,7 @@ El proyecto implementa una plataforma interactiva de inglés tipo Duolingo con m
 |---|---|---|---|---|
 | **Fase 1** | Limpieza: eliminar código muerto, dependencias innecesarias, duplicación básica | Bajo | Opcional (cosmética) | Ninguna |
 | **Fase 2** | Calidad de código: refactorizar archivos grandes, tipar correctamente, establecer convenciones | Bajo-Medio | Recomendada | Fase 1 (menos ruido) |
-| **Fase 3** | Corregir lógica de negocio: umbrales inconsistentes, simulación de voz, estado duplicado | Medio | Alta | Ninguna |
+| **✅ Fase 3** | Corregir lógica de negocio: umbrales inconsistentes, simulación de voz, estado duplicado | Medio | Alta — COMPLETADO | Ninguna |
 | **Fase 4** | Performance React: dividir contexto, memoizar, eliminar inline functions | Medio | Recomendada | Fase 1, Fase 2 |
 | **Fase 5** | Optimizar Supabase: eliminar N+1, unificar queries, agregar transacciones | Alto | Alta | Ninguna |
 | **Fase 6** | Arquitectura: separar responsabilidades, capa de repositorio, proteger rutas por rol | Alto | Alta | Fase 4, Fase 5 (contextos y datos más limpios) |
@@ -133,7 +133,7 @@ El proyecto implementa una plataforma interactiva de inglés tipo Duolingo con m
 ## Priorización Recomendada
 
 1. **Fase 7** — Seguridad: corregir RLS y contraseñas antes de cualquier otro cambio. Sin esto, la plataforma no es segura para ningún usuario real.
-2. **Fase 3** — Lógica de negocio: umbrales inconsistentes y simulación de voz afectan directamente la experiencia educativa.
+2. **✅ Fase 3** — Lógica de negocio: umbrales inconsistentes y simulación de voz afectan directamente la experiencia educativa. COMPLETADO.
 3. **Fase 5** — Supabase: N+1 mata la performance con pocos usuarios; empeora linealmente.
 4. **Fase 6** — Arquitectura: dividir el monolito de contexto y proteger rutas.
 5. **Fase 4** — React performance: optimizaciones después de tener la arquitectura limpia.

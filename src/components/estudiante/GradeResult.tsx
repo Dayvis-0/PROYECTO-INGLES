@@ -1,6 +1,7 @@
 import { Award, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
+import { PASS_THRESHOLD, MAX_SCORE } from "../../constants";
 
 interface Props {
   activeLessonTitle: string;
@@ -30,7 +31,7 @@ export default function GradeResult({ activeLessonTitle, totalExamQuestions }: P
   } = useAppContext();
 
   if (gainedGrade === null) return null;
-  const isApproved = gainedGrade >= 15;
+  const isApproved = gainedGrade >= PASS_THRESHOLD;
 
   function resetWalkthrough() {
     setFlatScreenIndex(0);
@@ -61,7 +62,7 @@ export default function GradeResult({ activeLessonTitle, totalExamQuestions }: P
             </span>
             <h3 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">{activeLessonTitle}</h3>
             <p className="text-slate-500 text-sm md:text-base font-bold max-w-2xl mx-auto">
-              Unidad superada y dominada bajo el sistema de calificación oficial (mínimo de aprobación 15 / 20).
+              Unidad superada y dominada bajo el sistema de calificación oficial (mínimo de aprobación {PASS_THRESHOLD} / {MAX_SCORE}).
             </p>
           </div>
         </>
@@ -72,7 +73,7 @@ export default function GradeResult({ activeLessonTitle, totalExamQuestions }: P
           </div>
           <div className="space-y-2">
             <span className="text-xs font-black uppercase text-red-700 tracking-widest bg-red-100 px-3 py-1.5 rounded animate-bounce text-center inline-block">
-              REQUISITO ACADÉMICO NO ALCANZADO (NOTA MÍNIMA COMPILADA: 15 DE 20) ❌
+              REQUISITO ACADÉMICO NO ALCANZADO (NOTA MÍNIMA COMPILADA: {PASS_THRESHOLD} DE {MAX_SCORE}) ❌
             </span>
             <h3 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">{activeLessonTitle}</h3>
             <p className="text-red-650 text-sm md:text-base font-semibold max-w-2xl mx-auto">
@@ -88,7 +89,7 @@ export default function GradeResult({ activeLessonTitle, totalExamQuestions }: P
           <span className={`text-6xl font-black tracking-tight ${isApproved ? "text-emerald-600" : "text-rose-600"}`}>
             {gainedGrade.toString().padStart(2, "0")}
           </span>
-          <span className="text-xl font-bold text-slate-400">/ 20</span>
+          <span className="text-xl font-bold text-slate-400">/ {MAX_SCORE}</span>
         </div>
         <div className="mt-4 border-t border-slate-200 pt-3 text-xs md:text-sm font-bold text-slate-500">
           Aciertos correctos: {gainedCorrect} de {totalExamQuestions}

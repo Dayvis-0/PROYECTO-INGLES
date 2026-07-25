@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 import type { Leccion, Calificacion, VocabularioItem, GramaticaColumna } from "../types";
 import { PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG } from "../data";
+import { PASS_THRESHOLD } from "../constants";
 
 // ─── HELPERS ────────────────────────────────────────────────
 
@@ -106,7 +107,7 @@ export async function saveCalificacion(
   // ❗ Si ya existe, NO pisamos (primera nota se conserva)
   if (existing && existing.length > 0) return;
 
-  const estado = grade.nota >= 11 ? "aprobado" : "desaprobado";
+  const estado = grade.nota >= PASS_THRESHOLD ? "aprobado" : "desaprobado";
 
   const { error } = await supabase.from("resultado").insert({
     id_estudiante: estuId,

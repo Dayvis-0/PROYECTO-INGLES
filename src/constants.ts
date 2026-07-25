@@ -37,3 +37,10 @@ export interface WalkthroughScreen {
   type: ScreenType;
   subIndex?: number;
 }
+
+/**
+ * Umbral de aprobación para lecciones (nota sobre 20).
+ * Se usa tanto en UI como en BD para que sean consistentes.
+ */
+export const PASS_THRESHOLD = 14;
+export const MAX_SCORE = 20;
