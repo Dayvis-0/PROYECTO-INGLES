@@ -2,6 +2,7 @@ import type { FormEvent } from "react";
 import { AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
+import { supabase } from "../lib/supabase";
 
 export default function LoginView() {
   const {
@@ -12,13 +13,72 @@ export default function LoginView() {
   } = useAppContext();
   const navigate = useNavigate();
 
-  const handleLoginSubmit = (e?: FormEvent) => {
+  const handleLoginSubmit = async (e?: FormEvent) => {
     if (e) e.preventDefault();
     setLoginError(null);
 
-    const finalUsername = usernameInput.trim() || "hitsuko.student";
-    setCurrentUser(finalUsername);
-    navigate("/estudiante");
+    const username = usernameInput.trim();
+    const password = passwordInput.trim();
+
+    if (!username || !password) {
+      setLoginError("Ingresá usuario y contraseña");
+      return;
+    }
+
+    try {
+      // 1. Buscar usuario en Supabase
+      const { data: usuarios, error } = await supabase
+        .from("usuario")
+        .select("*")
+        .eq("nombre_usuario", username)
+        .eq("contrasena", password)
+        .limit(1);
+
+      if (error) {
+        console.error("Error al consultar usuario:", error);
+        setLoginError("Error de conexión con la base de datos");
+        return;
+      }
+
+      if (!usuarios || usuarios.length === 0) {
+        setLoginError("Usuario o contraseña incorrectos");
+        return;
+      }
+
+      const usuario = usuarios[0];
+
+      // 2. Verificar si es docente
+      const { data: docentes } = await supabase
+        .from("docente")
+        .select("id_docente")
+        .eq("id_usuario", usuario.id_usuario)
+        .limit(1);
+
+      if (docentes && docentes.length > 0) {
+        setCurrentUser(usuario.nombre_usuario);
+        navigate("/docente");
+        return;
+      }
+
+      // 3. Verificar si es estudiante
+      const { data: estudiantes } = await supabase
+        .from("estudiante")
+        .select("id_estudiante")
+        .eq("id_usuario", usuario.id_usuario)
+        .limit(1);
+
+      if (estudiantes && estudiantes.length > 0) {
+        setCurrentUser(usuario.nombre_usuario);
+        navigate("/estudiante");
+        return;
+      }
+
+      // 4. Existe pero no tiene rol asignado
+      setLoginError("El usuario no tiene un rol asignado (estudiante/docente)");
+    } catch (err) {
+      console.error("Error inesperado en login:", err);
+      setLoginError("Error inesperado al iniciar sesión");
+    }
   };
 
   return (
