@@ -1,6 +1,7 @@
 import { type FormEvent, useCallback } from "react";
 import type { Leccion } from "../types";
-import { saveStoredLessons, PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG, DEFAULT_GRAMATICA_COLUMNAS, DEFAULT_GRAMATICA_TITULO, DEFAULT_GRAMATICA_DESC } from "../data";
+import { PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG, DEFAULT_GRAMATICA_COLUMNAS, DEFAULT_GRAMATICA_TITULO, DEFAULT_GRAMATICA_DESC } from "../data";
+import { saveLeccion, fetchLecciones } from "../lib/supabase-service";
 import { useAppContext } from "../context/AppContext";
 
 /**
@@ -11,6 +12,7 @@ export function useTeacherForm() {
   const {
     lessons,
     setLessons,
+    currentUser,
     formTitulo,
     setFormTitulo,
     formImagenGramatica,
@@ -192,7 +194,7 @@ export function useTeacherForm() {
   ]);
 
   const handleSaveLesson = useCallback(
-    (e: FormEvent) => {
+    async (e: FormEvent) => {
       e.preventDefault();
       setTeacherFormError(null);
 
@@ -264,68 +266,59 @@ export function useTeacherForm() {
         inlineSVGSource = PRESENT_CONTINUOUS_SVG;
       }
 
-      let updatedLessons: Leccion[];
+      let lessonToSave: Leccion;
 
       if (editingLessonId) {
-        updatedLessons = lessons.map((les) => {
-          if (les.id === editingLessonId) {
-            return {
-              ...les,
-              titulo: formTitulo.trim(),
-              imagenGramatica: inlineSVGSource,
-              formulaGramatica: formFormulaGramatica.trim(),
-              calentamiento: formCalentamiento,
-              evaluacion: formEvaluacion,
-              frasesPronunciacion: validatedFrasesPronunciacion,
-              ejemploOracion: formEjemploOracion.trim(),
-              ejemploRoles: formEjemploRoles,
-              vocabularioDetallado: formVocabularioDetallado,
-              gramaticaColumnas: formGramaticaColumnas.map(c => ({ ...c })),
-              gramaticaTitulo: formGramaticaTitulo.trim(),
-              gramaticaDesc: formGramaticaDesc.trim(),
-              listaVocabulario:
-                formVocabularioDetallado.length > 0
-                  ? formVocabularioDetallado
-                      .map((v) => v.ingles.trim())
-                      .filter(Boolean)
-                  : les.listaVocabulario,
-            };
-          }
-          return les;
-        });
-        setLessons(updatedLessons);
-        saveStoredLessons(updatedLessons);
-        alert("¡Cambios actualizados y guardados en memoria!");
+        const existing = lessons.find((l) => l.id === editingLessonId);
+        if (!existing) return;
+        lessonToSave = {
+          ...existing,
+          titulo: formTitulo.trim(),
+          formulaGramatica: formFormulaGramatica.trim(),
+          calentamiento: formCalentamiento,
+          evaluacion: formEvaluacion,
+          frasesPronunciacion: validatedFrasesPronunciacion,
+          ejemploOracion: formEjemploOracion.trim(),
+          ejemploRoles: formEjemploRoles,
+          vocabularioDetallado: formVocabularioDetallado,
+          gramaticaColumnas: formGramaticaColumnas.map((c) => ({ ...c })),
+          gramaticaTitulo: formGramaticaTitulo.trim(),
+          gramaticaDesc: formGramaticaDesc.trim(),
+          listaVocabulario:
+            formVocabularioDetallado.length > 0
+              ? formVocabularioDetallado.map((v) => v.ingles.trim()).filter(Boolean)
+              : existing.listaVocabulario,
+        };
       } else {
-        const newLesson: Leccion = {
+        lessonToSave = {
           id: "lesson_" + Date.now(),
           titulo: formTitulo.trim(),
           estado: lessons.length === 0 ? "activa" : "inactiva",
           listaVocabulario:
             formVocabularioDetallado.length > 0
-              ? formVocabularioDetallado
-                  .map((v) => v.ingles.trim())
-                  .filter(Boolean)
+              ? formVocabularioDetallado.map((v) => v.ingles.trim()).filter(Boolean)
               : ["study", "practice", "speak", "write", "learn"],
           vocabularioDetallado: formVocabularioDetallado,
           imagenGramatica: inlineSVGSource,
           formulaGramatica: formFormulaGramatica.trim(),
           ejemploOracion: formEjemploOracion.trim(),
           ejemploRoles: formEjemploRoles,
-          gramaticaColumnas: formGramaticaColumnas.map(c => ({ ...c })),
+          gramaticaColumnas: formGramaticaColumnas.map((c) => ({ ...c })),
           gramaticaTitulo: formGramaticaTitulo.trim(),
           gramaticaDesc: formGramaticaDesc.trim(),
           calentamiento: formCalentamiento,
           evaluacion: formEvaluacion,
           frasesPronunciacion: validatedFrasesPronunciacion,
         };
-
-        updatedLessons = [...lessons, newLesson];
-        setLessons(updatedLessons);
-        saveStoredLessons(updatedLessons);
-        alert("¡Nueva lección creada de forma dinámica y guardada!");
       }
 
+      // Guardar en Supabase
+      await saveLeccion(lessonToSave, currentUser || "");
+      // Recargar lecciones desde Supabase
+      const freshLessons = await fetchLecciones();
+      setLessons(freshLessons);
+
+      alert(editingLessonId ? "¡Cambios guardados en la base de datos!" : "¡Nueva lección creada y guardada!");
       resetTeacherForm();
     },
     [
@@ -343,6 +336,7 @@ export function useTeacherForm() {
       formGramaticaDesc,
       editingLessonId,
       lessons,
+      currentUser,
       setLessons,
       setTeacherFormError,
       resetTeacherForm,

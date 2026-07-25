@@ -18,12 +18,14 @@ import type {
   WalkthroughScreen,
 } from "../constants";
 import {
-  getStoredLessons,
-  getStoredCalificaciones,
   DEFAULT_GRAMATICA_COLUMNAS,
   DEFAULT_GRAMATICA_TITULO,
   DEFAULT_GRAMATICA_DESC,
 } from "../data";
+import {
+  fetchLecciones,
+  fetchCalificaciones,
+} from "../lib/supabase-service";
 
 // ─── State shape (internal) ──────────────────────────────
 interface AppState {
@@ -413,11 +415,21 @@ export function useAppContext(): AppContextType {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // Load from localStorage on mount
+  // Load from Supabase on mount
   useEffect(() => {
-    dispatch({ type: "SET_LESSONS", payload: getStoredLessons() });
-    dispatch({ type: "SET_CALIFICACIONES", payload: getStoredCalificaciones() });
+    fetchLecciones().then((lessons) => {
+      dispatch({ type: "SET_LESSONS", payload: lessons });
+    });
   }, []);
+
+  // Load grades when currentUser changes
+  useEffect(() => {
+    if (state.currentUser) {
+      fetchCalificaciones(state.currentUser).then((grades) => {
+        dispatch({ type: "SET_CALIFICACIONES", payload: grades });
+      });
+    }
+  }, [state.currentUser]);
 
   // ── Wrapper setters (keep the same public API) ──
   const value: AppContextType = {

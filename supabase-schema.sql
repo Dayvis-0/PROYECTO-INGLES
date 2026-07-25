@@ -43,7 +43,7 @@ CREATE TABLE estudiante (
 );
 
 CREATE TABLE leccion (
-    id_leccion     SERIAL PRIMARY KEY,
+    id_leccion     TEXT PRIMARY KEY,
     id_docente     INT NOT NULL,
     titulo         VARCHAR(80) NOT NULL,
     estado_activo  BOOLEAN DEFAULT FALSE,
@@ -55,7 +55,7 @@ CREATE TABLE leccion (
 
 CREATE TABLE vocabulario (
     id_vocabulario      SERIAL PRIMARY KEY,
-    id_leccion          INT NOT NULL,
+    id_leccion          TEXT NOT NULL,
     palabra_ingles      VARCHAR(100) NOT NULL,
     traduccion_espanol  VARCHAR(100) NOT NULL,
     url_audio           VARCHAR(500),
@@ -66,7 +66,7 @@ CREATE TABLE vocabulario (
 
 CREATE TABLE gramatica (
     id_gramatica  SERIAL PRIMARY KEY,
-    id_leccion    INT NOT NULL UNIQUE,
+    id_leccion    TEXT NOT NULL UNIQUE,
     nombre_tema   VARCHAR(150) NOT NULL,
     explicacion   TEXT NOT NULL,
     formula       VARCHAR(100),
@@ -77,7 +77,7 @@ CREATE TABLE gramatica (
 
 CREATE TABLE construccion_oracion (
     id_construccion     SERIAL PRIMARY KEY,
-    id_leccion          INT NOT NULL,
+    id_leccion          TEXT NOT NULL,
     oracion_espanol     TEXT NOT NULL,
     respuesta_correcta  TEXT NOT NULL,
     orden               SMALLINT NOT NULL,

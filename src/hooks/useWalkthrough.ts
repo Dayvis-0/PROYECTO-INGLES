@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import type { Calificacion } from "../types";
-import { saveStoredCalificaciones } from "../data";
 import { cleanCompare } from "../utils/cleaners";
 import { playTone } from "../utils/audio";
 import { useAppContext } from "../context/AppContext";
+import { saveCalificacion, fetchCalificaciones } from "../lib/supabase-service";
 
 /**
  * useWalkthrough — encapsulates the student lesson walkthrough logic:
@@ -159,7 +159,7 @@ export function useWalkthrough() {
     setExamCorrectCount,
   ]);
 
-  const handleContinueWalkthrough = useCallback(() => {
+  const handleContinueWalkthrough = useCallback(async () => {
     setFeedbackState("idle");
     setFeedbackMessage("");
     setCorrectAnswerReveal("");
@@ -224,30 +224,27 @@ export function useWalkthrough() {
           c.leccionId === activeLesson.id
       );
 
-      let updatedHistory: Calificacion[];
-      if (existingIndex !== -1) {
-        // ❗ La primera nota registrada se conserva para siempre
-        // Mostramos la nota nueva en pantalla pero NO pisamos la original
-        updatedHistory = calificaciones;
-      } else {
-        const newGrade: Calificacion = {
-          id: "eval_" + Date.now(),
-          estudiante: currentStudent,
-          leccionId: activeLesson.id,
-          leccionTitulo: activeLesson.titulo,
-          nota: score,
-          fecha: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 16),
-          aciertos: examCorrectCount,
-          totalPreguntas: totalExamsCount,
-        };
-        updatedHistory = [newGrade, ...calificaciones];
+      // Guardar en Supabase solo si es la primera vez
+      if (existingIndex === -1) {
+        await saveCalificacion(
+          {
+            estudiante: currentStudent,
+            leccionId: activeLesson.id,
+            leccionTitulo: activeLesson.titulo,
+            nota: score,
+            fecha: new Date()
+              .toISOString()
+              .replace("T", " ")
+              .substring(0, 16),
+            aciertos: examCorrectCount,
+            totalPreguntas: totalExamsCount,
+          },
+          currentStudent
+        );
+        // Recargar calificaciones desde Supabase
+        const freshGrades = await fetchCalificaciones(currentStudent);
+        setCalificaciones(freshGrades);
       }
-
-      setCalificaciones(updatedHistory);
-      saveStoredCalificaciones(updatedHistory);
 
       setGainedGrade(score);
       setGainedCorrect(examCorrectCount);

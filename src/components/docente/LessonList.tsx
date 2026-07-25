@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { BookOpen, AlertCircle, Edit3, Trash2 } from "lucide-react";
 import type { Leccion, EjercicioCalentamiento, PreguntaEvaluacion, VocabularioItem, GramaticaColumna } from "../../types";
-import { PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG, DEFAULT_GRAMATICA_COLUMNAS, DEFAULT_GRAMATICA_TITULO, DEFAULT_GRAMATICA_DESC, saveStoredLessons } from "../../data";
+import { PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG, DEFAULT_GRAMATICA_COLUMNAS, DEFAULT_GRAMATICA_TITULO, DEFAULT_GRAMATICA_DESC } from "../../data";
+import { deleteLeccion, saveLeccion, fetchLecciones } from "../../lib/supabase-service";
 import { useAppContext } from "../../context/AppContext";
 import { ModalConfirm } from "../ui";
 
@@ -28,8 +29,10 @@ export default function LessonList() {
 
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
+  const { currentUser } = useAppContext();
+
   const { handleEditLesson, handleDeleteLesson, handleToggleLesson } = useLessonHandlers(
-    lessons, setLessons,
+    lessons, setLessons, currentUser,
     setEditingLessonId,
     setFormTitulo, setFormImagenGramatica, setFormFormulaGramatica,
     setFormFrasesPronunciacion, setFormCalentamiento, setFormEvaluacion,
@@ -40,9 +43,9 @@ export default function LessonList() {
     setTeacherFormError,
   );
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteTargetId) {
-      handleDeleteLesson(deleteTargetId);
+      await handleDeleteLesson(deleteTargetId);
       setDeleteTargetId(null);
     }
   };
@@ -145,6 +148,7 @@ export default function LessonList() {
 function useLessonHandlers(
   lessons: Leccion[],
   setLessons: (l: Leccion[]) => void,
+  currentUser: string | null,
   setEditingLessonId: (id: string | null) => void,
   setFormTitulo: (v: string) => void,
   setFormImagenGramatica: (v: string) => void,
@@ -197,28 +201,37 @@ function useLessonHandlers(
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDeleteLesson = (id: string) => {
-    const filtered = lessons.filter(l => l.id !== id);
-    const isDeletingActive = lessons.find(l => l.id === id)?.estado === "activa";
-    if (isDeletingActive && filtered.length > 0) {
-      filtered[0].estado = "activa";
-    }
-    setLessons(filtered);
-    saveStoredLessons(filtered);
+  const handleDeleteLesson = async (id: string) => {
+    await deleteLeccion(id);
+    const freshLessons = await fetchLecciones();
+    setLessons(freshLessons);
   };
 
-  const handleToggleLesson = (id: string, currentStatus: "activa" | "inactiva") => {
-    const updated = lessons.map(l => {
-      if (l.id === id) {
-        return { ...l, estado: (currentStatus === "activa" ? "inactiva" : "activa") as "activa" | "inactiva" };
+  const handleToggleLesson = async (id: string, currentStatus: "activa" | "inactiva") => {
+    const lesson = lessons.find(l => l.id === id);
+    if (!lesson) return;
+
+    const newStatus: "activa" | "inactiva" =
+      currentStatus === "activa" ? "inactiva" : "activa";
+
+    // Si estamos activando esta, desactivamos todas las demás
+    const updatedLesson = {
+      ...lesson,
+      estado: newStatus,
+    };
+
+    // Primero desactivamos todas
+    for (const l of lessons) {
+      if (l.id !== id && l.estado === "activa") {
+        await saveLeccion({ ...l, estado: "inactiva" }, currentUser || "");
       }
-      if (currentStatus === "inactiva") {
-        return { ...l, estado: "inactiva" as const };
-      }
-      return l;
-    });
-    setLessons(updated);
-    saveStoredLessons(updated);
+    }
+
+    // Guardamos la que cambió
+    await saveLeccion(updatedLesson, currentUser || "");
+
+    const freshLessons = await fetchLecciones();
+    setLessons(freshLessons);
   };
 
   return { handleEditLesson, handleDeleteLesson, handleToggleLesson };

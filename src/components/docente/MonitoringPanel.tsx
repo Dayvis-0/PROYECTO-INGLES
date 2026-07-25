@@ -1,7 +1,16 @@
-import { useAppContext } from "../../context/AppContext";
+import { useState, useEffect } from "react";
+import { fetchAllCalificaciones } from "../../lib/supabase-service";
+import type { Calificacion } from "../../types";
 
 export default function MonitoringPanel() {
-  const { calificaciones } = useAppContext();
+  const [calificaciones, setCalificaciones] = useState<Calificacion[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAllCalificaciones()
+      .then(setCalificaciones)
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="bg-white rounded-[18px] p-5 md:p-6 w-full shadow-sm">
@@ -13,11 +22,14 @@ export default function MonitoringPanel() {
             Historial de Notas (Monitoreo)
           </h3>
         </div>
-        <span className="text-[20px] text-emerald-500 cursor-pointer">↗</span>
       </div>
 
       {/* ── Entries ── */}
-      {calificaciones.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-10 text-slate-400 text-sm font-bold">
+          Cargando...
+        </div>
+      ) : calificaciones.length === 0 ? (
         <div className="text-center py-10 text-slate-400 text-sm font-bold">
           No hay calificaciones registradas aún.
         </div>
@@ -51,24 +63,15 @@ export default function MonitoringPanel() {
                   </div>
                 </div>
 
-                {/* Score badge */}
-                <div className="flex flex-col items-center gap-1 min-w-[64px] shrink-0">
-                  <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-extrabold ${
-                      aprobado
-                        ? "bg-[#dcfce7] text-[#16a34a]"
-                        : "bg-[#ffe4e6] text-[#e11d48]"
-                    }`}
-                  >
-                    {cal.nota}
-                  </div>
-                  <span
-                    className={`text-[10px] font-extrabold tracking-wider uppercase ${
-                      aprobado ? "text-[#16a34a]" : "text-[#e11d48]"
-                    }`}
-                  >
-                    {aprobado ? "APROBADO" : "DESAPROBADO"}
-                  </span>
+                {/* Nota circular */}
+                <div
+                  className={`shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-lg font-black tracking-tight ${
+                    aprobado
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-red-100 text-red-600"
+                  }`}
+                >
+                  {cal.nota}
                 </div>
               </div>
             );
