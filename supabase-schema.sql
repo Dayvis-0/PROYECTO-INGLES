@@ -187,6 +187,19 @@ CREATE POLICY "Insert público" ON resultado FOR INSERT WITH CHECK (true);
 CREATE POLICY "Update público" ON resultado FOR UPDATE USING (true) WITH CHECK (true);
 CREATE POLICY "Update público" ON leccion FOR UPDATE USING (true) WITH CHECK (true);
 
+CREATE POLICY "Delete público" ON palabra_construccion FOR DELETE USING (true);
+CREATE POLICY "Delete público" ON pregunta FOR DELETE USING (true);
+CREATE POLICY "Delete público" ON resultado FOR DELETE USING (true);
+CREATE POLICY "Delete público" ON construccion_oracion FOR DELETE USING (true);
+CREATE POLICY "Delete público" ON vocabulario FOR DELETE USING (true);
+CREATE POLICY "Delete público" ON gramatica FOR DELETE USING (true);
+CREATE POLICY "Delete público" ON pronunciacion FOR DELETE USING (true);
+CREATE POLICY "Delete público" ON evaluacion FOR DELETE USING (true);
+CREATE POLICY "Delete público" ON leccion FOR DELETE USING (true);
+CREATE POLICY "Delete público" ON estudiante FOR DELETE USING (true);
+CREATE POLICY "Delete público" ON docente FOR DELETE USING (true);
+CREATE POLICY "Delete público" ON usuario FOR DELETE USING (true);
+
 -- ==================== DATOS INICIALES ====================
 
 -- 1. USUARIOS

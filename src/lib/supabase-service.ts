@@ -433,24 +433,34 @@ export async function fetchAllCalificaciones(): Promise<Calificacion[]> {
   }));
 }
 
+async function del(table: string, column: string, value: string | number | (string | number)[]): Promise<void> {
+  const query = supabase.from(table).delete();
+  const { error } = Array.isArray(value)
+    ? await query.in(column, value)
+    : await query.eq(column, value);
+  if (error) throw new Error(`Error al eliminar de ${table}: ${error.message}`);
+}
+
 export async function deleteLeccion(id: string): Promise<void> {
   // Delete in reverse dependency order
   const evalRes = await supabase.from("evaluacion").select("id_evaluacion").eq("id_leccion", id);
+  if (evalRes.error) throw new Error(`Error al buscar evaluaciones: ${evalRes.error.message}`);
   const evalIds = evalRes.data?.map(e => e.id_evaluacion) ?? [];
   if (evalIds.length > 0) {
-    await supabase.from("pregunta").delete().in("id_evaluacion", evalIds);
+    await del("pregunta", "id_evaluacion", evalIds);
   }
-  await supabase.from("evaluacion").delete().eq("id_leccion", id);
-  await supabase.from("pronunciacion").delete().eq("id_leccion", id);
+  await del("evaluacion", "id_leccion", id);
+  await del("pronunciacion", "id_leccion", id);
 
   const constrRes = await supabase.from("construccion_oracion").select("id_construccion").eq("id_leccion", id);
+  if (constrRes.error) throw new Error(`Error al buscar construcciones: ${constrRes.error.message}`);
   const constrIds = constrRes.data?.map(c => c.id_construccion) ?? [];
   if (constrIds.length > 0) {
-    await supabase.from("palabra_construccion").delete().in("id_construccion", constrIds);
+    await del("palabra_construccion", "id_construccion", constrIds);
   }
-  await supabase.from("construccion_oracion").delete().eq("id_leccion", id);
-  await supabase.from("gramatica").delete().eq("id_leccion", id);
-  await supabase.from("vocabulario").delete().eq("id_leccion", id);
-  await supabase.from("resultado").delete().eq("id_leccion", id);
-  await supabase.from("leccion").delete().eq("id_leccion", id);
+  await del("construccion_oracion", "id_leccion", id);
+  await del("gramatica", "id_leccion", id);
+  await del("vocabulario", "id_leccion", id);
+  await del("resultado", "id_leccion", id);
+  await del("leccion", "id_leccion", id);
 }
