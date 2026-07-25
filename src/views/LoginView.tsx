@@ -1,17 +1,28 @@
+import { useEffect } from "react";
 import type { FormEvent } from "react";
 import { AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { supabase } from "../lib/supabase";
+import { getDocenteId } from "../lib/supabase-service";
 
 export default function LoginView() {
   const {
+    currentUser,
     usernameInput, setUsernameInput,
     passwordInput, setPasswordInput,
     loginError, setLoginError,
     setCurrentUser,
   } = useAppContext();
   const navigate = useNavigate();
+
+  // Si ya hay sesión guardada, redirigir automáticamente
+  useEffect(() => {
+    if (!currentUser) return;
+    getDocenteId(currentUser).then((id) => {
+      navigate(id ? "/docente" : "/estudiante", { replace: true });
+    });
+  }, [currentUser, navigate]);
 
   const handleLoginSubmit = async (e?: FormEvent) => {
     if (e) e.preventDefault();

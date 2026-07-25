@@ -86,7 +86,7 @@ const initialState: AppState = {
   usernameInput: "",
   passwordInput: "",
   loginError: null,
-  currentUser: null,
+  currentUser: localStorage.getItem("unajma_current_user") || null,
   // Database
   lessons: [],
   calificaciones: [],
@@ -415,14 +415,30 @@ export function useAppContext(): AppContextType {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // Load from Supabase on mount
+  // Load lessons on mount + sync session across tabs
   useEffect(() => {
     fetchLecciones().then((lessons) => {
       dispatch({ type: "SET_LESSONS", payload: lessons });
     });
+
+    // Escuchar cambios en localStorage de OTRAS pestañas
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "unajma_current_user") {
+        dispatch({ type: "SET_CURRENT_USER", payload: e.newValue });
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // Load grades when currentUser changes
+  // Guardar currentUser en localStorage cuando cambia
+  useEffect(() => {
+    if (state.currentUser) {
+      localStorage.setItem("unajma_current_user", state.currentUser);
+    }
+  }, [state.currentUser]);
+
+  // Cargar calificaciones cuando cambia el usuario
   useEffect(() => {
     if (state.currentUser) {
       fetchCalificaciones(state.currentUser).then((grades) => {

@@ -36,6 +36,7 @@ function AppShell() {
     setUsernameInput("");
     setPasswordInput("");
     setWalkthroughActive(false);
+    localStorage.removeItem("unajma_current_user");
     navigate("/");
   };
 
