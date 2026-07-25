@@ -10,7 +10,7 @@ export default function ProtectedRoute({ children }: Props) {
   const { currentUser } = useAppContext();
 
   if (!currentUser) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

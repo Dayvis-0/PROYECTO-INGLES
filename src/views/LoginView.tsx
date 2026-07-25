@@ -1,8 +1,7 @@
 import type { FormEvent } from "react";
-import { ChevronLeft, AlertCircle } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
-import { ROLES } from "../constants";
 
 export default function LoginView() {
   const {
@@ -12,49 +11,27 @@ export default function LoginView() {
     setCurrentUser,
   } = useAppContext();
   const navigate = useNavigate();
-  const location = useLocation();
-  const selectedRole = (location.state as { role?: string })?.role || ROLES.STUDENT;
 
   const handleLoginSubmit = (e?: FormEvent) => {
     if (e) e.preventDefault();
     setLoginError(null);
 
-    const userClean = usernameInput.trim();
-
-    if (selectedRole === ROLES.STUDENT) {
-      const finalUsername = userClean || "hitsuko.student";
-      setCurrentUser(finalUsername);
-      navigate("/estudiante");
-    } else if (selectedRole === ROLES.TEACHER) {
-      const finalUsername = userClean || "profesor.farfan";
-      setCurrentUser(finalUsername);
-      navigate("/docente");
-    }
+    const finalUsername = usernameInput.trim() || "hitsuko.student";
+    setCurrentUser(finalUsername);
+    navigate("/estudiante");
   };
 
   return (
     <main className="flex-1 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white duo-card p-8 shadow-xl relative">
+      <div className="w-full max-w-sm bg-white duo-card p-8 shadow-xl">
 
-        <button
-          onClick={() => {
-            setUsernameInput("");
-            setPasswordInput("");
-            setLoginError(null);
-            navigate("/");
-          }}
-          className="absolute top-6 left-6 text-gray-400 hover:text-gray-900 flex items-center gap-1 text-sm font-bold transition-colors cursor-pointer"
-        >
-          <ChevronLeft className="w-4 h-4" /> Volver
-        </button>
-
-        <div className="text-center mt-6 mb-8">
-          <span className="text-xs font-black uppercase tracking-widest text-[#777777]">
-            Ingreso al Portal
-          </span>
-          <h2 className="text-3xl font-black text-[#3c3c3c] mt-2">
-            Acceso {selectedRole === ROLES.STUDENT ? "Estudiante" : "Docente"}
-          </h2>
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-3">
+            I.E. Manuel Vivanco Altamirano
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-[#3c3c3c]">
+            Learn English
+          </h1>
         </div>
 
         <form onSubmit={handleLoginSubmit} className="space-y-5">
@@ -67,8 +44,8 @@ export default function LoginView() {
               type="text"
               value={usernameInput}
               onChange={(e) => setUsernameInput(e.target.value)}
-              placeholder={selectedRole === ROLES.STUDENT ? "Usuario de Estudiante" : "Usuario de Docente"}
-              className="w-full px-4 py-3 border-2 border-[#e5e5e5] rounded-xl text-base font-bold text-[#3c3c3c] outline-none focus:border-sky-500 transition-colors"
+              placeholder="Tu usuario"
+              className="w-full px-4 py-3 border-2 border-[#e5e5e5] rounded-xl text-base font-bold text-[#3c3c3c] outline-none focus:border-emerald-500 transition-colors"
             />
           </div>
 
@@ -81,7 +58,7 @@ export default function LoginView() {
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 border-2 border-[#e5e5e5] rounded-xl text-base font-bold text-[#3c3c3c] outline-none focus:border-sky-500 transition-colors"
+              className="w-full px-4 py-3 border-2 border-[#e5e5e5] rounded-xl text-base font-bold text-[#3c3c3c] outline-none focus:border-emerald-500 transition-colors"
             />
           </div>
 
@@ -94,14 +71,16 @@ export default function LoginView() {
 
           <button
             type="submit"
-            className={`w-full py-4 font-black rounded-xl text-lg tracking-wider cursor-pointer ${
-              selectedRole === ROLES.STUDENT ? "btn-3d-green" : "btn-3d-blue"
-            }`}
+            className="w-full py-4 font-black rounded-xl text-lg tracking-wider cursor-pointer btn-3d-green"
           >
-            INGRESAR AHORA
+            INGRESAR
           </button>
 
         </form>
+
+        <div className="mt-8 text-center text-xs font-bold text-gray-400 uppercase tracking-widest">
+          UNAJMA
+        </div>
 
       </div>
     </main>

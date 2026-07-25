@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useAppContext } from "./context/AppContext";
-import WelcomeView from "./views/WelcomeView";
 import LoginView from "./views/LoginView";
 import DocenteView from "./views/DocenteView";
 import EstudianteHomeView from "./views/EstudianteHomeView";
@@ -43,8 +42,7 @@ function AppShell() {
   return (
     <div className="min-h-screen w-full flex flex-col bg-[#f7f7f7] text-[#3c3c3c]">
       <Routes>
-        <Route path="/" element={<WelcomeView />} />
-        <Route path="/login" element={<LoginView />} />
+        <Route path="/" element={<LoginView />} />
         <Route path="/docente" element={<ProtectedRoute><DocenteView onLogout={handleLogout} /></ProtectedRoute>} />
         <Route path="/estudiante" element={<ProtectedRoute><EstudianteHomeView onLogout={handleLogout} /></ProtectedRoute>} />
         <Route path="/estudiante/leccion/:stepType" element={<ProtectedRoute><EstudianteLeccionView /></ProtectedRoute>} />
