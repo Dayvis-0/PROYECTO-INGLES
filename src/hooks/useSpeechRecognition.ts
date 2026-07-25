@@ -8,6 +8,46 @@ import {
 } from "../utils/speech";
 import { useAppContext } from "../context/AppContext";
 
+/** Type for SpeechRecognition (webkit prefix included) */
+interface SpeechRecognition extends EventTarget {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start: () => void;
+  abort: () => void;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  readonly length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
+
 /**
  * useSpeechRecognition — encapsulates the Web Speech API logic for
  * voice recording and transcription with similarity scoring.
@@ -25,7 +65,7 @@ export function useSpeechRecognition() {
     setSpeechError,
   } = useAppContext();
 
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const stopVoiceRecording = useCallback(() => {
     if (recognitionRef.current) {
@@ -87,11 +127,11 @@ export function useSpeechRecognition() {
 
         rec.onstart = () => {
           setIsListeningVoice(true);
-          setVoiceTranscript("Escuchando... ¡Habla ahora fuerte y claro en inglés!");
+          setVoiceTranscript("Escuchando... ¡Hablá ahora fuerte y claro en inglés!");
           setVoiceSimilarity(null);
         };
 
-        rec.onresult = (event: any) => {
+        rec.onresult = (event: SpeechRecognitionEvent) => {
           const transcriptText: string = event.results[0][0].transcript;
           setVoiceTranscript(transcriptText);
 
@@ -114,7 +154,7 @@ export function useSpeechRecognition() {
           setVoiceSimilarity(Math.min(pct, 100));
         };
 
-        rec.onerror = (err: any) => {
+        rec.onerror = (err: SpeechRecognitionErrorEvent) => {
           console.error("Speech Recognition Error", err);
           setIsListeningVoice(false);
           setSpeechError(getSpeechErrorMessage(err.error || "unknown"));

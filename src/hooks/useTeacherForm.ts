@@ -1,12 +1,20 @@
 import { type FormEvent, useCallback } from "react";
 import type { Leccion } from "../types";
-import { PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG, DEFAULT_GRAMATICA_COLUMNAS, DEFAULT_GRAMATICA_TITULO, DEFAULT_GRAMATICA_DESC } from "../data";
+import {
+  PRESENT_SIMPLE_SVG,
+  PRESENT_CONTINUOUS_SVG,
+  DEFAULT_GRAMATICA_COLUMNAS,
+  DEFAULT_GRAMATICA_TITULO,
+  DEFAULT_GRAMATICA_DESC,
+} from "../data";
 import { saveLeccion, fetchLecciones } from "../lib/supabase-service";
 import { useAppContext } from "../context/AppContext";
 
 /**
  * useTeacherForm — encapsulates all form state manipulation and validation
  * for the teacher's lesson creation / editing form.
+ *
+ * Uses functional setState updates to avoid stale dependencies in useCallback.
  */
 export function useTeacherForm() {
   const {
@@ -44,37 +52,36 @@ export function useTeacherForm() {
   } = useAppContext();
 
   // ── Warmup handlers ──────────────────────────────────────
+  // Using functional updates to avoid depending on formCalentamiento
 
   const handleAddWarmupRow = useCallback(() => {
-    setFormCalentamiento([
-      ...formCalentamiento,
-      { fraseMetaEn: "", fraseMetaEs: "" },
-    ]);
-  }, [formCalentamiento, setFormCalentamiento]);
+    setFormCalentamiento((prev) => [...prev, { fraseMetaEn: "", fraseMetaEs: "" }]);
+  }, [setFormCalentamiento]);
 
   const handleRemoveWarmupRow = useCallback(
     (idx: number) => {
-      if (formCalentamiento.length <= 1) return;
-      setFormCalentamiento(formCalentamiento.filter((_, i) => i !== idx));
+      setFormCalentamiento((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== idx)));
     },
-    [formCalentamiento, setFormCalentamiento]
+    [setFormCalentamiento]
   );
 
   const handleWarmupRowChange = useCallback(
     (idx: number, field: "en" | "es", val: string) => {
-      const updated = [...formCalentamiento];
-      if (field === "en") updated[idx].fraseMetaEn = val;
-      else updated[idx].fraseMetaEs = val;
-      setFormCalentamiento(updated);
+      setFormCalentamiento((prev) => {
+        const updated = [...prev];
+        if (field === "en") updated[idx].fraseMetaEn = val;
+        else updated[idx].fraseMetaEs = val;
+        return updated;
+      });
     },
-    [formCalentamiento, setFormCalentamiento]
+    [setFormCalentamiento]
   );
 
   // ── Evaluation handlers ──────────────────────────────────
 
   const handleAddEvaluationRow = useCallback(() => {
-    setFormEvaluacion([
-      ...formEvaluacion,
+    setFormEvaluacion((prev) => [
+      ...prev,
       {
         pregunta: "",
         opciones: [
@@ -85,68 +92,72 @@ export function useTeacherForm() {
         ],
       },
     ]);
-  }, [formEvaluacion, setFormEvaluacion]);
+  }, [setFormEvaluacion]);
 
   const handleRemoveEvaluationRow = useCallback(
     (idx: number) => {
-      if (formEvaluacion.length <= 1) return;
-      setFormEvaluacion(formEvaluacion.filter((_, i) => i !== idx));
+      setFormEvaluacion((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== idx)));
     },
-    [formEvaluacion, setFormEvaluacion]
+    [setFormEvaluacion]
   );
 
   const handleEvaluationQuestionChange = useCallback(
     (qIdx: number, val: string) => {
-      const updated = [...formEvaluacion];
-      updated[qIdx].pregunta = val;
-      setFormEvaluacion(updated);
+      setFormEvaluacion((prev) => {
+        const updated = [...prev];
+        updated[qIdx].pregunta = val;
+        return updated;
+      });
     },
-    [formEvaluacion, setFormEvaluacion]
+    [setFormEvaluacion]
   );
 
   const handleEvaluationOptionTextChange = useCallback(
     (qIdx: number, oIdx: number, val: string) => {
-      const updated = [...formEvaluacion];
-      updated[qIdx].opciones[oIdx].texto = val;
-      setFormEvaluacion(updated);
+      setFormEvaluacion((prev) => {
+        const updated = [...prev];
+        updated[qIdx].opciones[oIdx].texto = val;
+        return updated;
+      });
     },
-    [formEvaluacion, setFormEvaluacion]
+    [setFormEvaluacion]
   );
 
   const handleEvaluationOptionCorrectSet = useCallback(
     (qIdx: number, correctOIdx: number) => {
-      const updated = [...formEvaluacion];
-      updated[qIdx].opciones.forEach((opt, oIdx) => {
-        opt.correcta = oIdx === correctOIdx;
+      setFormEvaluacion((prev) => {
+        const updated = [...prev];
+        updated[qIdx].opciones.forEach((opt, oIdx) => {
+          opt.correcta = oIdx === correctOIdx;
+        });
+        return updated;
       });
-      setFormEvaluacion(updated);
     },
-    [formEvaluacion, setFormEvaluacion]
+    [setFormEvaluacion]
   );
 
   // ── Pronunciation handlers ───────────────────────────────
 
   const handleAddPronunciacionRow = useCallback(() => {
-    setFormFrasesPronunciacion([...formFrasesPronunciacion, ""]);
-  }, [formFrasesPronunciacion, setFormFrasesPronunciacion]);
+    setFormFrasesPronunciacion((prev) => [...prev, ""]);
+  }, [setFormFrasesPronunciacion]);
 
   const handleRemovePronunciacionRow = useCallback(
     (idx: number) => {
-      if (formFrasesPronunciacion.length <= 1) return;
-      setFormFrasesPronunciacion(
-        formFrasesPronunciacion.filter((_, i) => i !== idx)
-      );
+      setFormFrasesPronunciacion((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== idx)));
     },
-    [formFrasesPronunciacion, setFormFrasesPronunciacion]
+    [setFormFrasesPronunciacion]
   );
 
   const handlePronunciacionRowChange = useCallback(
     (idx: number, val: string) => {
-      const updated = [...formFrasesPronunciacion];
-      updated[idx] = val;
-      setFormFrasesPronunciacion(updated);
+      setFormFrasesPronunciacion((prev) => {
+        const updated = [...prev];
+        updated[idx] = val;
+        return updated;
+      });
     },
-    [formFrasesPronunciacion, setFormFrasesPronunciacion]
+    [setFormFrasesPronunciacion]
   );
 
   // ── Form lifecycle ───────────────────────────────────────
@@ -204,9 +215,7 @@ export function useTeacherForm() {
         return;
       }
       if (!formFormulaGramatica.trim()) {
-        setTeacherFormError(
-          "La fórmula estructurada de gramática es obligatoria."
-        );
+        setTeacherFormError("La fórmula estructurada de gramática es obligatoria.");
         return;
       }
 
@@ -214,20 +223,13 @@ export function useTeacherForm() {
         .map((f) => f.trim())
         .filter(Boolean);
       if (validatedFrasesPronunciacion.length === 0) {
-        setTeacherFormError(
-          "Debe ingresar al menos una frase de pronunciación."
-        );
+        setTeacherFormError("Debe ingresar al menos una frase de pronunciación.");
         return;
       }
 
       for (let i = 0; i < formCalentamiento.length; i++) {
-        if (
-          !formCalentamiento[i].fraseMetaEn.trim() ||
-          !formCalentamiento[i].fraseMetaEs.trim()
-        ) {
-          setTeacherFormError(
-            `Faltan rellenar campos en el calentamiento nº ${i + 1}`
-          );
+        if (!formCalentamiento[i].fraseMetaEn.trim() || !formCalentamiento[i].fraseMetaEs.trim()) {
+          setTeacherFormError(`Faltan rellenar campos en el calentamiento nº ${i + 1}`);
           return;
         }
       }
@@ -235,25 +237,19 @@ export function useTeacherForm() {
       for (let i = 0; i < formEvaluacion.length; i++) {
         const q = formEvaluacion[i];
         if (!q.pregunta.trim()) {
-          setTeacherFormError(
-            `Falta escribir la pregunta del examen en la sección nº ${i + 1}`
-          );
+          setTeacherFormError(`Falta escribir la pregunta del examen en la sección nº ${i + 1}`);
           return;
         }
         let correctCount = 0;
         for (let j = 0; j < q.opciones.length; j++) {
           if (!q.opciones[j].texto.trim()) {
-            setTeacherFormError(
-              `Falta la alternativa ${j + 1} de la pregunta nº ${i + 1}`
-            );
+            setTeacherFormError(`Falta la alternativa ${j + 1} de la pregunta nº ${i + 1}`);
             return;
           }
           if (q.opciones[j].correcta) correctCount++;
         }
         if (correctCount !== 1) {
-          setTeacherFormError(
-            `Marca exactamente una respuesta correcta para la pregunta nº ${i + 1}`
-          );
+          setTeacherFormError(`Marca exactamente una respuesta correcta para la pregunta nº ${i + 1}`);
           return;
         }
       }

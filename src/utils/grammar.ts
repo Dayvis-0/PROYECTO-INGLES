@@ -9,6 +9,77 @@ export interface GrammarSegment {
   wordColor: string;
 }
 
+// Handcrafted premium segments for default lessons defined declaratively
+const PREMIUM_GRAMMAR_SEGMENTS: Record<string, GrammarSegment[]> = {
+  "1": [
+    {
+      word: "She",
+      role: "Subject (Sujeto)",
+      desc: "El pronombre o sujeto de la oración que realiza la acción.",
+      emoji: "👤",
+      badgeColor: "bg-emerald-500 text-white",
+      wordColor:
+        "hover:bg-emerald-50 border-emerald-300 text-emerald-700 bg-emerald-50/20",
+    },
+    {
+      word: "works",
+      role: "Verb (Verbo con -s)",
+      desc: "La acción principal. En el presente simple, los verbos llevan '-s' o '-es' cuando el sujeto es singular ('He', 'She', 'It').",
+      emoji: "⚡",
+      badgeColor: "bg-sky-500 text-white",
+      wordColor:
+        "hover:bg-sky-50 border-sky-300 text-sky-700 bg-sky-50/20",
+    },
+    {
+      word: "every day",
+      role: "Complement (Complemento)",
+      desc: "La información añadida que expresa la frecuencia, el tiempo o las circunstancias de la actividad.",
+      emoji: "📌",
+      badgeColor: "bg-amber-500 text-slate-800",
+      wordColor:
+        "hover:bg-amber-50 border-amber-300 text-amber-700 bg-amber-50/20",
+    },
+  ],
+  "2": [
+    {
+      word: "They",
+      role: "Subject (Sujeto)",
+      desc: "El pronombre personal o grupo de personas que realiza la acción.",
+      emoji: "👤",
+      badgeColor: "bg-emerald-500 text-white",
+      wordColor:
+        "hover:bg-emerald-50 border-emerald-300 text-emerald-700 bg-emerald-50/20",
+    },
+    {
+      word: "are",
+      role: "Auxiliary Verb (Verbo Auxiliar)",
+      desc: "El verbo auxiliar 'to be' conjugado para la persona correspondiente ('They are' = Ellos están).",
+      emoji: "⚙️",
+      badgeColor: "bg-orange-500 text-white",
+      wordColor:
+        "hover:bg-orange-50 border-orange-300 text-orange-700 bg-orange-50/20",
+    },
+    {
+      word: "learning",
+      role: "Main Verb (Verbo principal con -ing)",
+      desc: "La acción principal continuada. Lleva el sufijo '-ing' para denotar que el proceso está ocurriendo en tiempo real.",
+      emoji: "⚡",
+      badgeColor: "bg-sky-500 text-white",
+      wordColor:
+        "hover:bg-sky-50 border-sky-300 text-sky-700 bg-sky-50/20",
+    },
+    {
+      word: "English",
+      role: "Complement (Complemento)",
+      desc: "El objeto o elemento sobre el cual recae el verbo principal de la acción (Inglés).",
+      emoji: "📌",
+      badgeColor: "bg-amber-500 text-slate-800",
+      wordColor:
+        "hover:bg-amber-50 border-amber-300 text-amber-700 bg-amber-50/20",
+    },
+  ],
+};
+
 /**
  * Computes interactive grammar segments for a lesson's example sentence.
  * Uses teacher-defined roles if available, otherwise falls back to
@@ -40,78 +111,9 @@ export function getInteractiveGrammarSegments(
     });
   }
 
-  // Handcrafted premium segments for default lessons
-  if (lesson.id === "1") {
-    return [
-      {
-        word: "She",
-        role: "Subject (Sujeto)",
-        desc: "El pronombre o sujeto de la oración que realiza la acción.",
-        emoji: "👤",
-        badgeColor: "bg-emerald-500 text-white",
-        wordColor:
-          "hover:bg-emerald-50 border-emerald-300 text-emerald-700 bg-emerald-50/20",
-      },
-      {
-        word: "works",
-        role: "Verb (Verbo con -s)",
-        desc: "La acción principal. En el presente simple, los verbos llevan '-s' o '-es' cuando el sujeto es singular ('He', 'She', 'It').",
-        emoji: "⚡",
-        badgeColor: "bg-sky-500 text-white",
-        wordColor:
-          "hover:bg-sky-50 border-sky-300 text-sky-700 bg-sky-50/20",
-      },
-      {
-        word: "every day",
-        role: "Complement (Complemento)",
-        desc: "La información añadida que expresa la frecuencia, el tiempo o las circunstancias de la actividad.",
-        emoji: "📌",
-        badgeColor: "bg-amber-500 text-slate-800",
-        wordColor:
-          "hover:bg-amber-50 border-amber-300 text-amber-700 bg-amber-50/20",
-      },
-    ];
-  }
-
-  if (lesson.id === "2") {
-    return [
-      {
-        word: "They",
-        role: "Subject (Sujeto)",
-        desc: "El pronombre personal o grupo de personas que realiza la acción.",
-        emoji: "👤",
-        badgeColor: "bg-emerald-500 text-white",
-        wordColor:
-          "hover:bg-emerald-50 border-emerald-300 text-emerald-700 bg-emerald-50/20",
-      },
-      {
-        word: "are",
-        role: "Auxiliary Verb (Verbo Auxiliar)",
-        desc: "El verbo auxiliar 'to be' conjugado para la persona correspondiente ('They are' = Ellos están).",
-        emoji: "⚙️",
-        badgeColor: "bg-orange-500 text-white",
-        wordColor:
-          "hover:bg-orange-50 border-orange-300 text-orange-700 bg-orange-50/20",
-      },
-      {
-        word: "learning",
-        role: "Main Verb (Verbo principal con -ing)",
-        desc: "La acción principal continuada. Lleva el sufijo '-ing' para denotar que el proceso está ocurriendo en tiempo real.",
-        emoji: "⚡",
-        badgeColor: "bg-sky-500 text-white",
-        wordColor:
-          "hover:bg-sky-50 border-sky-300 text-sky-700 bg-sky-50/20",
-      },
-      {
-        word: "English",
-        role: "Complement (Complemento)",
-        desc: "El objeto o elemento sobre el cual recae el verbo principal de la acción (Inglés).",
-        emoji: "📌",
-        badgeColor: "bg-amber-500 text-slate-800",
-        wordColor:
-          "hover:bg-amber-50 border-amber-300 text-amber-700 bg-amber-50/20",
-      },
-    ];
+  // Check declarative premium segments
+  if (PREMIUM_GRAMMAR_SEGMENTS[lesson.id]) {
+    return PREMIUM_GRAMMAR_SEGMENTS[lesson.id];
   }
 
   // Generic automated mapping fallback for custom teacher lessons
