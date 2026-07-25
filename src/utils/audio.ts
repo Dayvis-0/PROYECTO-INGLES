@@ -43,14 +43,3 @@ export function playTone(frequency: number, volume: number, duration: number): v
     // Audio not available — silent
   }
 }
-
-/**
- * Close the shared AudioContext. Call on app unmount if desired, otherwise the
- * browser cleans it up on tab close.
- */
-export function closeAudioContext(): void {
-  if (_audioCtx) {
-    _audioCtx.close();
-    _audioCtx = null;
-  }
-}

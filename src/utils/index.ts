@@ -3,5 +3,4 @@ export { isWordSimilarityMatch } from "./similarity";
 export { cleanCompare } from "./cleaners";
 export { speakWord } from "./tts";
 export { getInteractiveGrammarSegments } from "./grammar";
-export { renderSVGInfographic } from "./svg";
-export { playTone, closeAudioContext } from "./audio";
+export { playTone } from "./audio";
