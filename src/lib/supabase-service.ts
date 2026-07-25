@@ -127,121 +127,154 @@ export async function saveCalificacion(
 
 // ─── LECCIONES ──────────────────────────────────────────────
 
-/** Reconstruye una Leccion completa desde las tablas relacionadas */
-async function buildLeccion(row: any): Promise<Leccion | null> {
-  const id = row.id_leccion;
-
-  // Vocabulario
-  const { data: vocabulario } = await supabase
-    .from("vocabulario")
-    .select("*")
-    .eq("id_leccion", id)
-    .order("orden");
-
-  const listaVocabulario = (vocabulario || []).map((v) => v.palabra_ingles);
-  const vocabularioDetallado: VocabularioItem[] = (vocabulario || []).map((v) => ({
-    ingles: v.palabra_ingles,
-    espanol: v.traduccion_espanol,
-    categoria: "",
-  }));
-
-  // Gramática
-  const { data: gramatica } = await supabase
-    .from("gramatica")
-    .select("*")
-    .eq("id_leccion", id)
-    .maybeSingle();
-
-  // Construcción de oraciones (calentamiento)
-  const { data: construcciones } = await supabase
-    .from("construccion_oracion")
-    .select("*")
-    .eq("id_leccion", id)
-    .order("orden");
-
-  const calentamiento = (construcciones || []).map((c) => ({
-    fraseMetaEn: c.respuesta_correcta,
-    fraseMetaEs: c.oracion_espanol,
-  }));
-
-  // Pronunciación
-  const { data: pronunciaciones } = await supabase
-    .from("pronunciacion")
-    .select("*")
-    .eq("id_leccion", id)
-    .order("orden");
-
-  const frasesPronunciacion = (pronunciaciones || []).map((p) => p.oracion_ingles);
-
-  // Evaluación + preguntas
-  const { data: evaluacion } = await supabase
-    .from("evaluacion")
-    .select("id_evaluacion")
-    .eq("id_leccion", id)
-    .maybeSingle();
-
-  let evaluacionPreguntas: Leccion["evaluacion"] = [];
-  if (evaluacion) {
-    const { data: preguntas } = await supabase
-      .from("pregunta")
-      .select("*")
-      .eq("id_evaluacion", evaluacion.id_evaluacion)
-      .order("orden");
-
-    evaluacionPreguntas = (preguntas || []).map((p) => ({
-      pregunta: p.enunciado,
-      opciones: [
-        { texto: p.alternativa_a, correcta: p.respuesta_correcta === "A" },
-        { texto: p.alternativa_b, correcta: p.respuesta_correcta === "B" },
-        { texto: p.alternativa_c, correcta: p.respuesta_correcta === "C" },
-        { texto: p.alternativa_d, correcta: p.respuesta_correcta === "D" },
-      ],
-    }));
-  }
-
-  // Imagen SVG según el tema
-  const imagenGramatica = id === "1"
-    ? PRESENT_SIMPLE_SVG
-    : id === "2"
-    ? PRESENT_CONTINUOUS_SVG
-    : PRESENT_SIMPLE_SVG;
-
-  return {
-    id,
-    titulo: row.titulo,
-    estado: row.estado_activo ? "activa" : "inactiva",
-    listaVocabulario,
-    vocabularioDetallado,
-    imagenGramatica,
-    formulaGramatica: gramatica?.formula || "",
-    ejemploOracion: gramatica?.ejemplo || "",
-    gramaticaTitulo: gramatica?.nombre_tema || "",
-    gramaticaDesc: gramatica?.explicacion || "",
-    gramaticaColumnas: (gramatica?.gramatica_columnas as any[]) || [],
-    ejemploRoles: (gramatica?.ejemplo_roles as string[]) || [],
-    calentamiento,
-    evaluacion: evaluacionPreguntas,
-    frasesPronunciacion,
-  };
-}
-
+/**
+ * fetchLecciones — trae TODAS las lecciones con sus relaciones en 7 queries totales
+ * (en lugar de 1 + 5*N). Escala aunque hayan 100 lecciones.
+ */
 export async function fetchLecciones(): Promise<Leccion[]> {
+  // 1. Traer todas las lecciones
   const { data: lecciones, error } = await supabase
     .from("leccion")
     .select("*")
     .order("created_at", { ascending: true });
 
-  if (error || !lecciones) {
-    console.error("Error fetching lecciones:", error);
+  if (error || !lecciones || lecciones.length === 0) {
+    if (error) console.error("Error fetching lecciones:", error);
     return [];
   }
 
-  const result: Leccion[] = [];
-  for (const row of lecciones) {
-    const leccion = await buildLeccion(row);
-    if (leccion) result.push(leccion);
+  const ids = lecciones.map((l: any) => l.id_leccion);
+
+  // 2. Traer TODO el vocabulario de todas las lecciones (1 query)
+  const { data: todosVocabulario } = await supabase
+    .from("vocabulario")
+    .select("*")
+    .in("id_leccion", ids)
+    .order("orden");
+
+  // 3. Traer TODA la gramática de todas las lecciones (1 query)
+  const { data: todaGramatica } = await supabase
+    .from("gramatica")
+    .select("*")
+    .in("id_leccion", ids);
+
+  // 4. Traer TODAS las construcciones de todas las lecciones (1 query)
+  const { data: todasConstrucciones } = await supabase
+    .from("construccion_oracion")
+    .select("*")
+    .in("id_leccion", ids)
+    .order("orden");
+
+  // 5. Traer TODA la pronunciación de todas las lecciones (1 query)
+  const { data: todaPronunciacion } = await supabase
+    .from("pronunciacion")
+    .select("*")
+    .in("id_leccion", ids)
+    .order("orden");
+
+  // 6. Traer TODAS las evaluaciones de todas las lecciones (1 query)
+  const { data: todasEvaluaciones } = await supabase
+    .from("evaluacion")
+    .select("*")
+    .in("id_leccion", ids);
+
+  // 7. Traer TODAS las preguntas de todas las evaluaciones (1 query)
+  const evalIds = (todasEvaluaciones || []).map((e: any) => e.id_evaluacion);
+  let todasPreguntas: any[] = [];
+  if (evalIds.length > 0) {
+    const { data: preguntas } = await supabase
+      .from("pregunta")
+      .select("*")
+      .in("id_evaluacion", evalIds)
+      .order("orden");
+    todasPreguntas = preguntas || [];
   }
-  return result;
+
+  // Indexar por lección para ensamblaje rápido
+  const vocPorLeccion = groupBy(todosVocabulario || [], "id_leccion");
+  const gramPorLeccion = groupBy(todaGramatica || [], "id_leccion");
+  const constrPorLeccion = groupBy(todasConstrucciones || [], "id_leccion");
+  const pronPorLeccion = groupBy(todaPronunciacion || [], "id_leccion");
+  const evalPorLeccion = groupBy(todasEvaluaciones || [], "id_leccion");
+  const pregPorEvaluacion = groupBy(todasPreguntas, "id_evaluacion");
+
+  // SVG mapping
+  const svgMap: Record<string, string> = {
+    "1": PRESENT_SIMPLE_SVG,
+    "2": PRESENT_CONTINUOUS_SVG,
+  };
+
+  return lecciones.map((row: any) => {
+    const id = row.id_leccion;
+    const vocs = vocPorLeccion[id] || [];
+    const grams = gramPorLeccion[id] || [];
+    const constrs = constrPorLeccion[id] || [];
+    const prons = pronPorLeccion[id] || [];
+    const evals = evalPorLeccion[id] || [];
+
+    const gramatica = grams[0];
+    const evaluacionRow = evals[0];
+
+    // Vocabulario
+    const vocabularioDetallado: VocabularioItem[] = vocs.map((v: any) => ({
+      ingles: v.palabra_ingles,
+      espanol: v.traduccion_espanol,
+      categoria: "",
+    }));
+
+    // Calentamiento
+    const calentamiento = constrs.map((c: any) => ({
+      fraseMetaEn: c.respuesta_correcta,
+      fraseMetaEs: c.oracion_espanol,
+    }));
+
+    // Pronunciación
+    const frasesPronunciacion = prons.map((p: any) => p.oracion_ingles);
+
+    // Evaluación + preguntas
+    let evaluacionPreguntas: Leccion["evaluacion"] = [];
+    if (evaluacionRow) {
+      const preguntas = pregPorEvaluacion[evaluacionRow.id_evaluacion] || [];
+      evaluacionPreguntas = preguntas.map((p: any) => ({
+        pregunta: p.enunciado,
+        opciones: [
+          { texto: p.alternativa_a, correcta: p.respuesta_correcta === "A" },
+          { texto: p.alternativa_b, correcta: p.respuesta_correcta === "B" },
+          { texto: p.alternativa_c, correcta: p.respuesta_correcta === "C" },
+          { texto: p.alternativa_d, correcta: p.respuesta_correcta === "D" },
+        ],
+      }));
+    }
+
+    return {
+      id,
+      titulo: row.titulo,
+      estado: row.estado_activo ? "activa" : "inactiva",
+      listaVocabulario: vocs.map((v: any) => v.palabra_ingles),
+      vocabularioDetallado,
+      imagenGramatica: svgMap[id] || PRESENT_SIMPLE_SVG,
+      formulaGramatica: gramatica?.formula || "",
+      ejemploOracion: gramatica?.ejemplo || "",
+      gramaticaTitulo: gramatica?.nombre_tema || "",
+      gramaticaDesc: gramatica?.explicacion || "",
+      gramaticaColumnas: (gramatica?.gramatica_columnas as any[]) || [],
+      ejemploRoles: (gramatica?.ejemplo_roles as string[]) || [],
+      calentamiento,
+      evaluacion: evaluacionPreguntas,
+      frasesPronunciacion,
+    };
+  });
+}
+
+/** Agrupa un array de objetos por una clave */
+function groupBy<T extends Record<string, any>>(arr: T[], key: string): Record<string, T[]> {
+  const map: Record<string, T[]> = {};
+  for (const item of arr) {
+    const k = item[key];
+    if (!map[k]) map[k] = [];
+    map[k].push(item);
+  }
+  return map;
 }
 
 export async function saveLeccion(lesson: Leccion, docenteUsername: string): Promise<void> {

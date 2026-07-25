@@ -79,7 +79,7 @@ El proyecto implementa una plataforma interactiva de inglés tipo Duolingo con m
 
 ---
 
-### Fase 5 — Supabase y Datos (Riesgo Alto)
+### ✅ Fase 5 — Supabase y Datos (Riesgo Alto) — COMPLETADO
 
 | ID | Categoría | Prioridad | Archivo(s) | Descripción | Evidencia | Motivo | Riesgo | Recomendación |
 |---|---|---|---|---|---|---|---|---|
