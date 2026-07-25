@@ -10,6 +10,8 @@ interface Props {
 export default function EstudianteHomeView({ onLogout }: Props) {
   const {
     currentUser,
+    loadingLessons,
+    loadingGrades,
     lessons,
     calificaciones,
     initWalkthrough,
@@ -66,6 +68,15 @@ export default function EstudianteHomeView({ onLogout }: Props) {
           </h5>
 
           {(() => {
+            if (loadingLessons) {
+              return (
+                <div className="duo-card p-8 text-center bg-white border-2 border-slate-200 animate-pulse">
+                  <div className="w-12 h-12 bg-slate-200 rounded-full mx-auto mb-3" />
+                  <div className="h-5 bg-slate-200 rounded w-48 mx-auto mb-2" />
+                  <div className="h-4 bg-slate-200 rounded w-64 mx-auto" />
+                </div>
+              );
+            }
             const active = lessons.find(l => l.estado === "activa");
             if (!active) {
               return (
@@ -82,7 +93,8 @@ export default function EstudianteHomeView({ onLogout }: Props) {
             const studentGrade = calificaciones.find(
               c => c.estudiante === currentUser && c.leccionId === active.id
             );
-            const hasCompleted = !!studentGrade && studentGrade.nota >= 15;
+            const hasAttempt = !!studentGrade;
+            const hasPassed = hasAttempt && studentGrade.nota >= 15;
 
             return (
               <div className="duo-card p-6 md:p-8 bg-white border-b-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 hover:shadow-lg transition-all">
@@ -91,7 +103,7 @@ export default function EstudianteHomeView({ onLogout }: Props) {
                     <span className="bg-[#58cc02] text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded">
                       LECCIÓN ACTIVA
                     </span>
-                    {hasCompleted && (
+                    {hasPassed && (
                       <span className="bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded flex items-center gap-1.5">
                         <Check className="w-3.5 h-3.5 stroke-[3px]" /> COMPLETADO (Nota {studentGrade.nota})
                       </span>
@@ -121,10 +133,10 @@ export default function EstudianteHomeView({ onLogout }: Props) {
                   <button
                     onClick={() => launchActiveLesson(active)}
                     className={`py-5 px-10 text-xl font-black uppercase tracking-wider rounded-2xl w-full md:w-auto cursor-pointer ${
-                      hasCompleted ? "btn-3d-blue" : "btn-3d-green"
+                      hasAttempt ? "btn-3d-blue" : "btn-3d-green"
                     }`}
                   >
-                    {hasCompleted ? "REPETIR LECCIÓN" : "EMPEZAR LECCIÓN"}
+                    {hasAttempt ? "REPETIR LECCIÓN" : "EMPEZAR LECCIÓN"}
                   </button>
                 </div>
               </div>
@@ -139,7 +151,12 @@ export default function EstudianteHomeView({ onLogout }: Props) {
 
           <div className="bg-white duo-card p-6 shadow-sm">
 
-            {calificaciones.filter(c => c.estudiante === currentUser).length === 0 ? (
+            {loadingGrades ? (
+              <div className="animate-pulse text-center py-6">
+                <div className="w-10 h-10 bg-slate-200 rounded-full mx-auto mb-2" />
+                <div className="h-4 bg-slate-200 rounded w-48 mx-auto" />
+              </div>
+            ) : calificaciones.filter(c => c.estudiante === currentUser).length === 0 ? (
               <div className="text-center py-6 text-slate-400">
                 <Award className="w-10 h-10 text-slate-300 mx-auto mb-2" />
                 <p className="text-xs font-bold">Aún no has completado evaluaciones de examen.</p>

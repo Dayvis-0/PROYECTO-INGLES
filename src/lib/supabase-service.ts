@@ -10,13 +10,13 @@ async function getEstudianteId(username: string): Promise<number | null> {
     .from("usuario")
     .select("id_usuario")
     .eq("nombre_usuario", username)
-    .single();
+    .maybeSingle();
   if (!data) return null;
   const { data: estu } = await supabase
     .from("estudiante")
     .select("id_estudiante")
     .eq("id_usuario", data.id_usuario)
-    .single();
+    .maybeSingle();
   return estu?.id_estudiante ?? null;
 }
 
@@ -26,13 +26,13 @@ export async function getDocenteId(username: string): Promise<number | null> {
     .from("usuario")
     .select("id_usuario")
     .eq("nombre_usuario", username)
-    .single();
+    .maybeSingle();
   if (!data) return null;
   const { data: doc } = await supabase
     .from("docente")
     .select("id_docente")
     .eq("id_usuario", data.id_usuario)
-    .single();
+    .maybeSingle();
   return doc?.id_docente ?? null;
 }
 
@@ -60,15 +60,17 @@ export async function fetchCalificaciones(username: string): Promise<Calificacio
 
   // Fetch lesson titles for each resultado
   const leccionIds = [...new Set(resultados.map((r) => r.id_leccion))];
-  const { data: lecciones } = await supabase
-    .from("leccion")
-    .select("id_leccion, titulo")
-    .in("id_leccion", leccionIds);
-
   const tituloMap: Record<string, string> = {};
-  if (lecciones) {
-    for (const l of lecciones) {
-      tituloMap[l.id_leccion] = l.titulo;
+  if (leccionIds.length > 0) {
+    const { data: lecciones } = await supabase
+      .from("leccion")
+      .select("id_leccion, titulo")
+      .in("id_leccion", leccionIds);
+
+    if (lecciones) {
+      for (const l of lecciones) {
+        tituloMap[l.id_leccion] = l.titulo;
+      }
     }
   }
 
@@ -147,7 +149,7 @@ async function buildLeccion(row: any): Promise<Leccion | null> {
     .from("gramatica")
     .select("*")
     .eq("id_leccion", id)
-    .single();
+    .maybeSingle();
 
   // Construcción de oraciones (calentamiento)
   const { data: construcciones } = await supabase
@@ -175,7 +177,7 @@ async function buildLeccion(row: any): Promise<Leccion | null> {
     .from("evaluacion")
     .select("id_evaluacion")
     .eq("id_leccion", id)
-    .single();
+    .maybeSingle();
 
   let evaluacionPreguntas: Leccion["evaluacion"] = [];
   if (evaluacion) {
@@ -212,7 +214,10 @@ async function buildLeccion(row: any): Promise<Leccion | null> {
     imagenGramatica,
     formulaGramatica: gramatica?.formula || "",
     ejemploOracion: gramatica?.ejemplo || "",
-    gramaticaColumnas: [],
+    gramaticaTitulo: gramatica?.nombre_tema || "",
+    gramaticaDesc: gramatica?.explicacion || "",
+    gramaticaColumnas: (gramatica?.gramatica_columnas as any[]) || [],
+    ejemploRoles: (gramatica?.ejemplo_roles as string[]) || [],
     calentamiento,
     evaluacion: evaluacionPreguntas,
     frasesPronunciacion,
@@ -285,6 +290,8 @@ export async function saveLeccion(lesson: Leccion, docenteUsername: string): Pro
       explicacion: lesson.gramaticaDesc || "",
       formula: lesson.formulaGramatica,
       ejemplo: lesson.ejemploOracion || "",
+      gramatica_columnas: lesson.gramaticaColumnas || [],
+      ejemplo_roles: lesson.ejemploRoles || [],
     });
   }
 
@@ -364,34 +371,42 @@ export async function fetchAllCalificaciones(): Promise<Calificacion[]> {
 
   if (error || !data) return [];
 
-  // Obtener nombres de estudiantes
   const estuIds = [...new Set(data.map((r) => r.id_estudiante))];
-  const { data: estudiantes } = await supabase
-    .from("estudiante")
-    .select("id_estudiante, id_usuario")
-    .in("id_estudiante", estuIds);
-
-  const { data: usuarios } = await supabase
-    .from("usuario")
-    .select("id_usuario, nombre_usuario")
-    .in("id_usuario", (estudiantes || []).map((e) => e.id_usuario));
-
-  const usuarioMap: Record<number, string> = {};
-  if (usuarios) {
-    for (const u of usuarios) {
-      usuarioMap[u.id_usuario] = u.nombre_usuario;
-    }
-  }
-
   const estuUserMap: Record<number, string> = {};
-  if (estudiantes) {
-    for (const e of estudiantes) {
-      estuUserMap[e.id_estudiante] = usuarioMap[e.id_usuario] || "desconocido";
+
+  if (estuIds.length > 0) {
+    const { data: estudiantes } = await supabase
+      .from("estudiante")
+      .select("id_estudiante, id_usuario")
+      .in("id_estudiante", estuIds);
+
+    const usuarioIds = (estudiantes || []).map((e) => e.id_usuario);
+    const usuarioMap: Record<number, string> = {};
+
+    if (usuarioIds.length > 0) {
+      const { data: usuarios } = await supabase
+        .from("usuario")
+        .select("id_usuario, nombre_usuario")
+        .in("id_usuario", usuarioIds);
+
+      if (usuarios) {
+        for (const u of usuarios) {
+          usuarioMap[u.id_usuario] = u.nombre_usuario;
+        }
+      }
+    }
+
+    if (estudiantes) {
+      for (const e of estudiantes) {
+        estuUserMap[e.id_estudiante] = usuarioMap[e.id_usuario] || "desconocido";
+      }
     }
   }
 
   // Obtener títulos de lecciones
   const leccionIds = [...new Set(data.map((r) => r.id_leccion))];
+  if (leccionIds.length === 0) return [];
+
   const { data: lecciones } = await supabase
     .from("leccion")
     .select("id_leccion, titulo")
@@ -420,17 +435,19 @@ export async function fetchAllCalificaciones(): Promise<Calificacion[]> {
 
 export async function deleteLeccion(id: string): Promise<void> {
   // Delete in reverse dependency order
-  await supabase.from("pregunta").delete().eq("id_evaluacion",
-    (await supabase.from("evaluacion").select("id_evaluacion").eq("id_leccion", id).single()).data
-      ?.id_evaluacion ?? 0
-  );
+  const evalRes = await supabase.from("evaluacion").select("id_evaluacion").eq("id_leccion", id);
+  const evalIds = evalRes.data?.map(e => e.id_evaluacion) ?? [];
+  if (evalIds.length > 0) {
+    await supabase.from("pregunta").delete().in("id_evaluacion", evalIds);
+  }
   await supabase.from("evaluacion").delete().eq("id_leccion", id);
   await supabase.from("pronunciacion").delete().eq("id_leccion", id);
-  await supabase.from("palabra_construccion").delete().eq("id_construccion",
-    // Delete all related words first
-    (await supabase.from("construccion_oracion").select("id_construccion").eq("id_leccion", id)).data
-      ?.map(c => c.id_construccion) ?? []
-  );
+
+  const constrRes = await supabase.from("construccion_oracion").select("id_construccion").eq("id_leccion", id);
+  const constrIds = constrRes.data?.map(c => c.id_construccion) ?? [];
+  if (constrIds.length > 0) {
+    await supabase.from("palabra_construccion").delete().in("id_construccion", constrIds);
+  }
   await supabase.from("construccion_oracion").delete().eq("id_leccion", id);
   await supabase.from("gramatica").delete().eq("id_leccion", id);
   await supabase.from("vocabulario").delete().eq("id_leccion", id);

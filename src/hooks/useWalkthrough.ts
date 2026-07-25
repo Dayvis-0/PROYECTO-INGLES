@@ -118,7 +118,8 @@ export function useWalkthrough() {
       const targetEval = activeLesson.evaluacion[idx];
 
       if (selectedExamOptionIndex === null) {
-        alert(
+        setFeedbackState("incorrect");
+        setFeedbackMessage(
           "Por favor selecciona una alternativa antes de continuar."
         );
         return;

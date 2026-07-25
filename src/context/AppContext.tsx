@@ -35,6 +35,8 @@ interface AppState {
   loginError: string | null;
   currentUser: string | null;
   // Database
+  loadingLessons: boolean;
+  loadingGrades: boolean;
   lessons: Leccion[];
   calificaciones: Calificacion[];
   // Teacher Form
@@ -88,6 +90,8 @@ const initialState: AppState = {
   loginError: null,
   currentUser: localStorage.getItem("unajma_current_user") || null,
   // Database
+  loadingLessons: true,
+  loadingGrades: true,
   lessons: [],
   calificaciones: [],
   // Teacher Form
@@ -150,7 +154,9 @@ type AppAction =
   | { type: "SET_LOGIN_ERROR"; payload: string | null }
   | { type: "SET_CURRENT_USER"; payload: string | null }
   | { type: "SET_LESSONS"; payload: Leccion[] }
+  | { type: "SET_LOADING_LESSONS"; payload: boolean }
   | { type: "SET_CALIFICACIONES"; payload: Calificacion[] }
+  | { type: "SET_LOADING_GRADES"; payload: boolean }
   | { type: "SET_FORM_TITULO"; payload: string }
   | { type: "SET_FORM_IMAGEN_GRAMATICA"; payload: string }
   | { type: "SET_FORM_FORMULA_GRAMATICA"; payload: string }
@@ -201,9 +207,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case "SET_CURRENT_USER":
       return { ...state, currentUser: action.payload };
     case "SET_LESSONS":
-      return { ...state, lessons: action.payload };
+      return { ...state, lessons: action.payload, loadingLessons: false };
+    case "SET_LOADING_LESSONS":
+      return { ...state, loadingLessons: action.payload };
     case "SET_CALIFICACIONES":
-      return { ...state, calificaciones: action.payload };
+      return { ...state, calificaciones: action.payload, loadingGrades: false };
+    case "SET_LOADING_GRADES":
+      return { ...state, loadingGrades: action.payload };
     case "SET_FORM_TITULO":
       return { ...state, formTitulo: action.payload };
     case "SET_FORM_IMAGEN_GRAMATICA":
@@ -308,6 +318,8 @@ interface AppContextType {
   setCurrentUser: (u: string | null) => void;
 
   // Database
+  loadingLessons: boolean;
+  loadingGrades: boolean;
   lessons: Leccion[];
   setLessons: (l: Leccion[]) => void;
   calificaciones: Calificacion[];
@@ -440,11 +452,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Cargar calificaciones cuando cambia el usuario
   useEffect(() => {
-    if (state.currentUser) {
-      fetchCalificaciones(state.currentUser).then((grades) => {
-        dispatch({ type: "SET_CALIFICACIONES", payload: grades });
-      });
+    if (!state.currentUser) {
+      dispatch({ type: "SET_LOADING_GRADES", payload: false });
+      return;
     }
+    dispatch({ type: "SET_LOADING_GRADES", payload: true });
+    fetchCalificaciones(state.currentUser).then((grades) => {
+      dispatch({ type: "SET_CALIFICACIONES", payload: grades });
+    });
   }, [state.currentUser]);
 
   // ── Wrapper setters (keep the same public API) ──
@@ -460,6 +475,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCurrentUser: (u) => dispatch({ type: "SET_CURRENT_USER", payload: u }),
 
     // Database
+    loadingLessons: state.loadingLessons,
+    loadingGrades: state.loadingGrades,
     lessons: state.lessons,
     setLessons: (l) => dispatch({ type: "SET_LESSONS", payload: l }),
     calificaciones: state.calificaciones,

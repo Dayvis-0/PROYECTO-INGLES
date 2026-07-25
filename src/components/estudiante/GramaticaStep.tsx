@@ -50,7 +50,10 @@ export default function GramaticaStep() {
 
           {/* Three columns — dynamic from lesson data */}
           <div className="grid grid-cols-3 gap-2">
-            {(activeLesson.gramaticaColumnas || DEFAULT_GRAMATICA_COLUMNAS).map((col, i) => (
+            {(activeLesson.gramaticaColumnas && activeLesson.gramaticaColumnas.length > 0
+              ? activeLesson.gramaticaColumnas
+              : DEFAULT_GRAMATICA_COLUMNAS
+            ).map((col, i) => (
               <div key={i}
                 className={`${
                   i === 2

@@ -74,15 +74,7 @@ export default function EstudianteLeccionView() {
     <div className="flex-1 flex flex-col bg-white">
       <header className="sticky top-0 z-10 py-2.5 px-3 md:px-12 border-b border-slate-100 bg-white flex items-center gap-2">
         <button
-          onClick={() => {
-            if (gainedGrade !== null && gainedGrade < 15) {
-              alert(
-                "No has aprobado la lección con la nota mínima de 15. Debes reintentar la lección para poder completarla y salir."
-              );
-              return;
-            }
-            setShowExitConfirm(true);
-          }}
+          onClick={() => setShowExitConfirm(true)}
           className="p-1.5 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
         >
           <X className="w-5 h-5" />

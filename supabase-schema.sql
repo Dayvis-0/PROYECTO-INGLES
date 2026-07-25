@@ -65,12 +65,14 @@ CREATE TABLE vocabulario (
 );
 
 CREATE TABLE gramatica (
-    id_gramatica  SERIAL PRIMARY KEY,
-    id_leccion    TEXT NOT NULL UNIQUE,
-    nombre_tema   VARCHAR(150) NOT NULL,
-    explicacion   TEXT NOT NULL,
-    formula       VARCHAR(100),
-    ejemplo       TEXT,
+    id_gramatica       SERIAL PRIMARY KEY,
+    id_leccion         TEXT NOT NULL UNIQUE,
+    nombre_tema        VARCHAR(150) NOT NULL,
+    explicacion        TEXT NOT NULL,
+    formula            VARCHAR(100),
+    ejemplo            TEXT,
+    gramatica_columnas JSONB DEFAULT '[]',
+    ejemplo_roles      TEXT[] DEFAULT '{}',
     CONSTRAINT fk_gramatica_leccion FOREIGN KEY (id_leccion)
         REFERENCES leccion(id_leccion)
 );
@@ -96,7 +98,7 @@ CREATE TABLE palabra_construccion (
 
 CREATE TABLE pronunciacion (
     id_pronunciacion  SERIAL PRIMARY KEY,
-    id_leccion        INT NOT NULL,
+    id_leccion        TEXT NOT NULL,
     oracion_ingles    TEXT NOT NULL,
     orden             SMALLINT NOT NULL,
     CONSTRAINT fk_pronunciacion_leccion FOREIGN KEY (id_leccion)
@@ -105,7 +107,7 @@ CREATE TABLE pronunciacion (
 
 CREATE TABLE evaluacion (
     id_evaluacion  SERIAL PRIMARY KEY,
-    id_leccion     INT NOT NULL UNIQUE,
+    id_leccion     TEXT NOT NULL UNIQUE,
     CONSTRAINT fk_evaluacion_leccion FOREIGN KEY (id_leccion)
         REFERENCES leccion(id_leccion)
 );
@@ -127,7 +129,7 @@ CREATE TABLE pregunta (
 CREATE TABLE resultado (
     id_leccion_estudiante  SERIAL PRIMARY KEY,
     id_estudiante           INT NOT NULL,
-    id_leccion              INT NOT NULL,
+    id_leccion              TEXT NOT NULL,
     fecha_realizacion       TIMESTAMP DEFAULT NOW(),
     nota_obtenida           NUMERIC(5,2),
     aciertos                SMALLINT,
@@ -214,11 +216,13 @@ INSERT INTO vocabulario (id_leccion, palabra_ingles, traduccion_espanol, orden) 
 (1, 'write',  'escribir', 6);
 
 -- 6. GRAMATICA
-INSERT INTO gramatica (id_leccion, nombre_tema, explicacion, formula, ejemplo)
+INSERT INTO gramatica (id_leccion, nombre_tema, explicacion, formula, ejemplo, gramatica_columnas, ejemplo_roles)
 VALUES (1, 'PRESENT SIMPLE',
 'El Present Simple se usa para hablar de rutinas, hábitos y hechos permanentes. Para he/she/it se agrega -s o -es al verbo.',
 'Subject + Verb (-s/-es) + Complement',
-'She eats an apple every morning.');
+'She eats an apple every morning.',
+'[{"titulo":"I / You / We / They","verbo":"PLAY","nota":"Every Saturday"},{"titulo":"He / She / It","verbo":"PLAYS","nota":"Adds -s / -es\\ne.g. works, studies"},{"titulo":"FORMULA","verbo":"S + Verb(-s) + Complement","nota":"e.g. She eats an apple."}]'::jsonb,
+ARRAY['Sujeto','Verbo','Complemento','Complemento']);
 
 -- 7. CONSTRUCCION DE ORACIONES (calentamiento)
 INSERT INTO construccion_oracion (id_leccion, oracion_espanol, respuesta_correcta, orden) VALUES
@@ -318,11 +322,13 @@ INSERT INTO vocabulario (id_leccion, palabra_ingles, traduccion_espanol, orden) 
 (2, 'sleeping', 'durmiendo', 4),
 (2, 'coding',   'programando', 5);
 
-INSERT INTO gramatica (id_leccion, nombre_tema, explicacion, formula, ejemplo)
+INSERT INTO gramatica (id_leccion, nombre_tema, explicacion, formula, ejemplo, gramatica_columnas, ejemplo_roles)
 VALUES (2, 'PRESENT CONTINUOUS',
 'El Present Continuous se usa para acciones que están ocurriendo ahora mismo en el momento de hablar. Se forma con el verbo to be (am/is/are) + verbo con -ing.',
 'Subject + am/is/are + Verb(-ing) + Complement',
-'I am reading a book right now.');
+'I am reading a book right now.',
+'[{"titulo":"I","verbo":"am","nota":"Sujeto"},{"titulo":"He/She/It","verbo":"is","nota":"Sujeto"},{"titulo":"You/We/They","verbo":"are","nota":"Sujeto"},{"titulo":"FORMULA","verbo":"S + Be + V(-ing) + C","nota":"e.g. I am reading a book."}]'::jsonb,
+ARRAY['Sujeto','Verbo','Complemento']);
 
 INSERT INTO construccion_oracion (id_leccion, oracion_espanol, respuesta_correcta, orden) VALUES
 (2, 'Estoy escribiendo un ensayo',               'I am writing an essay', 1),

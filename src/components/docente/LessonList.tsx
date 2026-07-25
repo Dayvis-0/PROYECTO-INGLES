@@ -9,8 +9,8 @@ import { ModalConfirm } from "../ui";
 export default function LessonList() {
   const {
     lessons,
+    loadingLessons,
     setLessons,
-    calificaciones,
     setEditingLessonId,
     setFormTitulo,
     setFormImagenGramatica,
@@ -63,7 +63,21 @@ export default function LessonList() {
       </div>
 
       <div className="space-y-3.5">
-        {lessons.length === 0 ? (
+        {loadingLessons ? (
+          <div className="space-y-3 animate-pulse">
+            {[1, 2].map((i) => (
+              <div key={i} className="p-4 rounded-2xl border-2 border-slate-200 bg-white">
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-6 bg-slate-200 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-slate-200 rounded w-48" />
+                    <div className="h-3 bg-slate-200 rounded w-32" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : lessons.length === 0 ? (
           <div className="text-center py-8 text-slate-400">
             <AlertCircle className="w-10 h-10 stroke-[1.5] mx-auto mb-2 text-slate-300" />
             <p className="font-bold text-sm">No hay lecciones en la base de datos.</p>
@@ -202,9 +216,13 @@ function useLessonHandlers(
   };
 
   const handleDeleteLesson = async (id: string) => {
-    await deleteLeccion(id);
-    const freshLessons = await fetchLecciones();
-    setLessons(freshLessons);
+    try {
+      await deleteLeccion(id);
+      const freshLessons = await fetchLecciones();
+      setLessons(freshLessons);
+    } catch (err) {
+      console.error("Error al eliminar lección:", err);
+    }
   };
 
   const handleToggleLesson = async (id: string, currentStatus: "activa" | "inactiva") => {
