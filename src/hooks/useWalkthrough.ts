@@ -226,18 +226,9 @@ export function useWalkthrough() {
 
       let updatedHistory: Calificacion[];
       if (existingIndex !== -1) {
-        const updatedGrade = {
-          ...calificaciones[existingIndex],
-          nota: score,
-          fecha: new Date()
-            .toISOString()
-            .replace("T", " ")
-            .substring(0, 16),
-          aciertos: examCorrectCount,
-          totalPreguntas: totalExamsCount,
-        };
-        updatedHistory = [...calificaciones];
-        updatedHistory[existingIndex] = updatedGrade;
+        // ❗ La primera nota registrada se conserva para siempre
+        // Mostramos la nota nueva en pantalla pero NO pisamos la original
+        updatedHistory = calificaciones;
       } else {
         const newGrade: Calificacion = {
           id: "eval_" + Date.now(),
