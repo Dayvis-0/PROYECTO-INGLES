@@ -216,12 +216,16 @@ function useLessonHandlers(
   };
 
   const handleDeleteLesson = async (id: string) => {
+    // Optimistic update: sacar la lección de la UI al instante
+    setLessons(lessons.filter(l => l.id !== id));
+
     try {
       await deleteLeccion(id);
-      const freshLessons = await fetchLecciones();
-      setLessons(freshLessons);
     } catch (err) {
       console.error("Error al eliminar lección:", err);
+      // Si falla, recargamos la lista real desde la base de datos
+      const freshLessons = await fetchLecciones();
+      setLessons(freshLessons);
     }
   };
 
@@ -232,24 +236,28 @@ function useLessonHandlers(
     const newStatus: "activa" | "inactiva" =
       currentStatus === "activa" ? "inactiva" : "activa";
 
-    // Si estamos activando esta, desactivamos todas las demás
-    const updatedLesson = {
-      ...lesson,
-      estado: newStatus,
-    };
+    // Optimistic update: cambiar el estado al instante
+    setLessons(lessons.map(l =>
+      l.id === id ? { ...l, estado: newStatus } :
+      newStatus === "activa" && l.estado === "activa" ? { ...l, estado: "inactiva" } :
+      l
+    ));
 
-    // Primero desactivamos todas
-    for (const l of lessons) {
-      if (l.id !== id && l.estado === "activa") {
-        await saveLeccion({ ...l, estado: "inactiva" }, currentUser || "");
+    try {
+      // Si estamos activando esta, desactivamos todas las demás
+      for (const l of lessons) {
+        if (l.id !== id && l.estado === "activa") {
+          await saveLeccion({ ...l, estado: "inactiva" }, currentUser || "");
+        }
       }
+      // Guardamos la que cambió
+      await saveLeccion({ ...lesson, estado: newStatus }, currentUser || "");
+    } catch (err) {
+      console.error("Error al cambiar estado:", err);
+      // Si falla, recargamos desde la base de datos
+      const freshLessons = await fetchLecciones();
+      setLessons(freshLessons);
     }
-
-    // Guardamos la que cambió
-    await saveLeccion(updatedLesson, currentUser || "");
-
-    const freshLessons = await fetchLecciones();
-    setLessons(freshLessons);
   };
 
   return { handleEditLesson, handleDeleteLesson, handleToggleLesson };

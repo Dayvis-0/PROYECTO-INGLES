@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchAllCalificaciones } from "../../lib/supabase-service";
+import { supabase } from "../../lib/supabase";
 import type { Calificacion } from "../../types";
 
 export default function MonitoringPanel() {
@@ -10,6 +11,21 @@ export default function MonitoringPanel() {
     fetchAllCalificaciones()
       .then(setCalificaciones)
       .finally(() => setLoading(false));
+
+    const channel = supabase
+      .channel("monitoring-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "resultado" },
+        () => {
+          fetchAllCalificaciones().then(setCalificaciones);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (

@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react";
 import type { Leccion, Calificacion } from "../types";
 import { fetchLecciones, fetchCalificaciones } from "../lib/supabase-service";
+import { supabase } from "../lib/supabase";
 
 // ─── State ────────────────────────────────────────────────
 interface LessonsState {
@@ -55,12 +56,41 @@ export function useLessonsContext(): LessonsContextType {
 export function LessonsProvider({ currentUser, children }: { currentUser: string | null; children: ReactNode }) {
   const [state, dispatch] = useReducer(lessonsReducer, initialLessonsState);
 
-  // Load lessons on mount
+  // Load lessons on mount + subscribe to real-time changes
   useEffect(() => {
     fetchLecciones().then((lessons) => {
       dispatch({ type: "SET_LESSONS", payload: lessons });
     });
-  }, []);
+
+    const channel = supabase
+      .channel("lecciones-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "leccion" },
+        () => {
+          fetchLecciones().then((lessons) => {
+            dispatch({ type: "SET_LESSONS", payload: lessons });
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "resultado" },
+        () => {
+          // Refetch calificaciones del estudiante actual si está logueado
+          if (currentUser) {
+            fetchCalificaciones(currentUser).then((grades) => {
+              dispatch({ type: "SET_CALIFICACIONES", payload: grades });
+            });
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser]);
 
   // Load calificaciones when user changes
   useEffect(() => {
