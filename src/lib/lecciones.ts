@@ -239,6 +239,15 @@ export async function saveLeccion(lesson: Leccion, docenteUsername: string): Pro
 
   // Construcción de oraciones (calentamiento)
   if (lesson.calentamiento.length > 0) {
+    // Primero borrar palabra_construccion (hijas) para evitar 409 Conflict
+    const { data: constrRows } = await supabase
+      .from("construccion_oracion")
+      .select("id_construccion")
+      .eq("id_leccion", id);
+    const constrIds = constrRows?.map((c: any) => c.id_construccion) ?? [];
+    if (constrIds.length > 0) {
+      await supabase.from("palabra_construccion").delete().in("id_construccion", constrIds);
+    }
     await supabase.from("construccion_oracion").delete().eq("id_leccion", id);
     for (let i = 0; i < lesson.calentamiento.length; i++) {
       const c = lesson.calentamiento[i];
