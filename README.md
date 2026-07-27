@@ -5,7 +5,7 @@
 
 ## Descripción del Proyecto
 
-Plataforma web interactiva para el aprendizaje de inglés dirigida a estudiantes de la UNAJMA. Permite a los docentes crear y gestionar lecciones, y a los estudiantes realizar ejercicios de vocabulario, gramática, pronunciación y evaluación en un entorno guiado paso a paso.
+Plataforma web interactiva para el aprendizaje de inglés dirigida a estudiantes de la Institución educativa secundaria Colegio Manuel Vivanco Altamirano - Andahuaylas. Permite a los docentes crear y gestionar lecciones, y a los estudiantes realizar ejercicios de vocabulario, gramática, pronunciación y evaluación en un entorno guiado paso a paso.
 
 ## Roles del Sistema
 
