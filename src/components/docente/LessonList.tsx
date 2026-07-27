@@ -4,6 +4,7 @@ import type { Leccion, EjercicioCalentamiento, PreguntaEvaluacion, VocabularioIt
 import { PRESENT_SIMPLE_SVG, PRESENT_CONTINUOUS_SVG, DEFAULT_GRAMATICA_COLUMNAS, DEFAULT_GRAMATICA_TITULO, DEFAULT_GRAMATICA_DESC } from "../../data";
 import { deleteLeccion, saveLeccion, fetchLecciones } from "../../lib/supabase-service";
 import { useAppContext } from "../../context/AppContext";
+import { setPendingLessonUpdate } from "../../context/LessonsContext";
 import { ModalConfirm } from "../ui";
 
 export default function LessonList() {
@@ -236,6 +237,9 @@ function useLessonHandlers(
     const newStatus: "activa" | "inactiva" =
       currentStatus === "activa" ? "inactiva" : "activa";
 
+    // Bloquear tiempo real mientras hacemos el cambio local
+    setPendingLessonUpdate(true);
+
     // Optimistic update: cambiar el estado al instante
     setLessons(lessons.map(l =>
       l.id === id ? { ...l, estado: newStatus } :
@@ -253,13 +257,15 @@ function useLessonHandlers(
       // Guardamos la que cambió
       await saveLeccion({ ...lesson, estado: newStatus }, currentUser || "");
 
-      // Recargar desde DB para pisar cualquier evento real-time parcial
+      // Recargar desde DB para estado final correcto
       const freshLessons = await fetchLecciones();
       setLessons(freshLessons);
     } catch (err) {
       console.error("Error al cambiar estado:", err);
       const freshLessons = await fetchLecciones();
       setLessons(freshLessons);
+    } finally {
+      setPendingLessonUpdate(false);
     }
   };
 

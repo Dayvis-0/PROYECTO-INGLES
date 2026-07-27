@@ -3,6 +3,10 @@ import type { Leccion, Calificacion } from "../types";
 import { fetchLecciones, fetchCalificaciones } from "../lib/supabase-service";
 import { supabase } from "../lib/supabase";
 
+// Flag global para evitar que el tiempo real pise cambios locales del docente
+export let _pendingLessonUpdate = false;
+export function setPendingLessonUpdate(v: boolean) { _pendingLessonUpdate = v; }
+
 // ─── State ────────────────────────────────────────────────
 interface LessonsState {
   loadingLessons: boolean;
@@ -68,6 +72,8 @@ export function LessonsProvider({ currentUser, children }: { currentUser: string
         "postgres_changes",
         { event: "*", schema: "public", table: "leccion" },
         () => {
+          // No actualizar si el docente está haciendo un cambio local
+          if (_pendingLessonUpdate) return;
           fetchLecciones().then((lessons) => {
             dispatch({ type: "SET_LESSONS", payload: lessons });
           });
