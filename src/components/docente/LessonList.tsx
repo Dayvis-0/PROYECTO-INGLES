@@ -252,9 +252,12 @@ function useLessonHandlers(
       }
       // Guardamos la que cambió
       await saveLeccion({ ...lesson, estado: newStatus }, currentUser || "");
+
+      // Recargar desde DB para pisar cualquier evento real-time parcial
+      const freshLessons = await fetchLecciones();
+      setLessons(freshLessons);
     } catch (err) {
       console.error("Error al cambiar estado:", err);
-      // Si falla, recargamos desde la base de datos
       const freshLessons = await fetchLecciones();
       setLessons(freshLessons);
     }

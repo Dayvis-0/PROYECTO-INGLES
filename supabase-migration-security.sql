@@ -259,14 +259,16 @@ SELECT '1', p.* FROM (VALUES
 ) AS p(oracion, ord)
 WHERE NOT EXISTS (SELECT 1 FROM pronunciacion WHERE id_leccion = '1' LIMIT 1);
 
-INSERT INTO evaluacion (id_evaluacion, id_leccion)
-SELECT 1, '1'
+INSERT INTO evaluacion (id_leccion)
+SELECT '1'
 WHERE NOT EXISTS (SELECT 1 FROM evaluacion WHERE id_leccion = '1');
 
 INSERT INTO pregunta (id_evaluacion, enunciado,
     alternativa_a, alternativa_b, alternativa_c, alternativa_d,
     respuesta_correcta, orden)
-SELECT 1, p.* FROM (VALUES
+SELECT e.id_evaluacion, p.*
+FROM evaluacion e
+CROSS JOIN (VALUES
     ('Elige el verbo correcto: ''She ____ English very well.''', 'studies', 'study', 'studying', 'studis', 'A', 1),
     ('Completa la oracion: ''We ____ to the radio every morning.''', 'hears', 'listens', 'listen', 'listening', 'C', 2),
     ('Completa la oracion: ''My father ____ coffee in the office.''', 'drinks', 'drinking', 'drink', 'drinked', 'A', 3),
@@ -278,7 +280,7 @@ SELECT 1, p.* FROM (VALUES
     ('Elige la opcion correcta: ''The sun ____ in the east.''', 'rise', 'rises', 'rising', 'rised', 'B', 9),
     ('Completa la oracion: ''We ____ letters to our friends.''', 'writes', 'write', 'writing', 'writed', 'B', 10)
 ) AS p(enunciado, a, b, c, d, correcta, ord)
-WHERE NOT EXISTS (SELECT 1 FROM pregunta WHERE id_evaluacion = 1 LIMIT 1);
+WHERE e.id_leccion = '1';
 
 -- Leccion 2: Present Continuous
 INSERT INTO leccion (id_leccion, id_docente, titulo, estado_activo)
@@ -330,14 +332,16 @@ SELECT '2', p.* FROM (VALUES
 ) AS p(oracion, ord)
 WHERE NOT EXISTS (SELECT 1 FROM pronunciacion WHERE id_leccion = '2' LIMIT 1);
 
-INSERT INTO evaluacion (id_evaluacion, id_leccion)
-SELECT 2, '2'
+INSERT INTO evaluacion (id_leccion)
+SELECT '2'
 WHERE NOT EXISTS (SELECT 1 FROM evaluacion WHERE id_leccion = '2');
 
 INSERT INTO pregunta (id_evaluacion, enunciado,
     alternativa_a, alternativa_b, alternativa_c, alternativa_d,
     respuesta_correcta, orden)
-SELECT 2, p.* FROM (VALUES
+SELECT e.id_evaluacion, p.*
+FROM evaluacion e
+CROSS JOIN (VALUES
     ('Completa: ''My teacher ____ talking right now.''', 'is', 'are', 'am', 'be', 'A', 1),
     ('What are they doing? ''They ____ soccer in the yard.''', 'is playing', 'playing', 'are playing', 'are play', 'C', 2),
     ('Completa la oracion: ''I ____ learning how to cook.''', 'am', 'is', 'are', 'be', 'A', 3),
@@ -349,7 +353,7 @@ SELECT 2, p.* FROM (VALUES
     ('Completa la pregunta: ''Why are you ____?''', 'runs', 'running', 'run', 'ran', 'B', 9),
     ('Completa: ''The students ____ studying for the exam.''', 'is', 'are', 'am', 'was', 'B', 10)
 ) AS p(enunciado, a, b, c, d, correcta, ord)
-WHERE NOT EXISTS (SELECT 1 FROM pregunta WHERE id_evaluacion = 2 LIMIT 1);
+WHERE e.id_leccion = '2';
 
 -- ============================================
 -- VERIFICACION
