@@ -81,12 +81,14 @@ export function createSpeechRecognition(): SpeechRecognition | null {
  */
 export function getSpeechErrorMessage(errorCode: string): string {
   switch (errorCode) {
+    case "aborted":
+      return "";
     case "not-allowed":
       return "El acceso al micrófono está restringido. Por favor, aseguráte de dar permisos en tu navegador o hacé clic en el botón 'Permitir'. Si estás en un iframe, abrí en una ventana nueva.";
     case "no-speech":
       return "No se detectó sonido. Intentá hablar más alto o verificá la conexión de tu micrófono.";
     default:
-      return `Error al acceder al micrófono (${errorCode || "desconocido"}). Iniciando simulación automática.`;
+      return `Error al acceder al micrófono (${errorCode || "desconocido"}).`;
   }
 }
 

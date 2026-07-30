@@ -113,7 +113,7 @@ export function useSpeechRecognition() {
 
       if (!isSpeechRecognitionSupported()) {
         setSpeechError(
-          "La API de reconocimiento de voz no está soportada en tu navegador (usa Chrome, Edge o Safari). Escribí la frase manualmente abajo."
+          "La API de reconocimiento de voz no está soportada en tu navegador (usa Chrome, Edge o Safari)."
         );
         setIsListeningVoice(false);
         return;
@@ -157,8 +157,9 @@ export function useSpeechRecognition() {
         rec.onerror = (err: SpeechRecognitionErrorEvent) => {
           console.error("Speech Recognition Error", err);
           setIsListeningVoice(false);
-          setSpeechError(getSpeechErrorMessage(err.error || "unknown"));
-          // NO simular — el usuario escribe manualmente
+          if (err.error !== "aborted") {
+            setSpeechError(getSpeechErrorMessage(err.error || "unknown"));
+          }
         };
 
         rec.onend = () => {
@@ -169,9 +170,8 @@ export function useSpeechRecognition() {
       } catch (e) {
         console.error(e);
         setSpeechError(
-          "No se pudo conectar con el servicio de voz. Escribí la frase manualmente abajo."
+          "No se pudo conectar con el servicio de voz."
         );
-        // NO simular — el usuario escribe manualmente
       }
     },
     [
