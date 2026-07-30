@@ -95,6 +95,7 @@ export default function LessonForm() {
     handlePronunciacionRowChange,
     resetTeacherForm,
     handleSaveLesson,
+    isSaving,
   } = useTeacherForm();
 
   // ── Auto-dismiss success message after 4s ──
@@ -471,10 +472,24 @@ export default function LessonForm() {
           </div>
         )}
 
-        <button type="submit"
-          className="w-full py-4 text-base md:text-lg font-black tracking-wide rounded-2xl cursor-pointer shadow-md btn-3d-blue uppercase active:scale-99 transition-all"
+        <button type="submit" disabled={isSaving}
+          className={`w-full py-4 text-base md:text-lg font-black tracking-wide rounded-2xl shadow-md btn-3d-blue uppercase transition-all ${
+            isSaving
+              ? "opacity-60 cursor-not-allowed scale-98"
+              : "cursor-pointer active:scale-99"
+          }`}
         >
-          {editingLessonId ? "💾 Guardar Cambios" : "💾 Registrar Lección"}
+          {isSaving ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              {editingLessonId ? "Guardando..." : "Registrando..."}
+            </span>
+          ) : (
+            editingLessonId ? "💾 Guardar Cambios" : "💾 Registrar Lección"
+          )}
         </button>
       </form>
     </div>

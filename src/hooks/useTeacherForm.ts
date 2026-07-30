@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback } from "react";
+import { type FormEvent, useCallback, useState } from "react";
 import type { Leccion } from "../types";
 import {
   PRESENT_SIMPLE_SVG,
@@ -17,6 +17,8 @@ import { useAppContext } from "../context/AppContext";
  * Uses functional setState updates to avoid stale dependencies in useCallback.
  */
 export function useTeacherForm() {
+  const [isSaving, setIsSaving] = useState(false);
+
   const {
     lessons,
     setLessons,
@@ -210,15 +212,19 @@ export function useTeacherForm() {
   const handleSaveLesson = useCallback(
     async (e: FormEvent) => {
       e.preventDefault();
+      if (isSaving) return;
+      setIsSaving(true);
       setTeacherFormError(null);
 
       // ── Validation ──
       if (!formTitulo.trim()) {
         setTeacherFormError("El título del tema es obligatorio.");
+        setIsSaving(false);
         return;
       }
       if (!formFormulaGramatica.trim()) {
         setTeacherFormError("La fórmula estructurada de gramática es obligatoria.");
+        setIsSaving(false);
         return;
       }
 
@@ -227,12 +233,14 @@ export function useTeacherForm() {
         .filter(Boolean);
       if (validatedFrasesPronunciacion.length === 0) {
         setTeacherFormError("Debe ingresar al menos una frase de pronunciación.");
+        setIsSaving(false);
         return;
       }
 
       for (let i = 0; i < formCalentamiento.length; i++) {
         if (!formCalentamiento[i].fraseMetaEn.trim() || !formCalentamiento[i].fraseMetaEs.trim()) {
           setTeacherFormError(`Faltan rellenar campos en el calentamiento nº ${i + 1}`);
+          setIsSaving(false);
           return;
         }
       }
@@ -241,18 +249,21 @@ export function useTeacherForm() {
         const q = formEvaluacion[i];
         if (!q.pregunta.trim()) {
           setTeacherFormError(`Falta escribir la pregunta del examen en la sección nº ${i + 1}`);
+          setIsSaving(false);
           return;
         }
         let correctCount = 0;
         for (let j = 0; j < q.opciones.length; j++) {
           if (!q.opciones[j].texto.trim()) {
             setTeacherFormError(`Falta la alternativa ${j + 1} de la pregunta nº ${i + 1}`);
+            setIsSaving(false);
             return;
           }
           if (q.opciones[j].correcta) correctCount++;
         }
         if (correctCount !== 1) {
           setTeacherFormError(`Marca exactamente una respuesta correcta para la pregunta nº ${i + 1}`);
+          setIsSaving(false);
           return;
         }
       }
@@ -317,8 +328,9 @@ export function useTeacherForm() {
       const freshLessons = await fetchLecciones();
       setLessons(freshLessons);
 
-      setTeacherFormSuccess(editingLessonId ? "¡Cambios guardados en la base de datos!" : "¡Nueva lección creada y guardada!");
       resetTeacherForm();
+      setTeacherFormSuccess(editingLessonId ? "¡Cambios guardados en la base de datos!" : "¡Nueva lección creada y guardada!");
+      setIsSaving(false);
     },
     [
       formTitulo,
@@ -337,8 +349,10 @@ export function useTeacherForm() {
       lessons,
       currentUser,
       setLessons,
+      setIsSaving,
       setTeacherFormError,
       resetTeacherForm,
+      isSaving,
     ]
   );
 
@@ -360,5 +374,6 @@ export function useTeacherForm() {
     // Lifecycle
     resetTeacherForm,
     handleSaveLesson,
+    isSaving,
   };
 }
