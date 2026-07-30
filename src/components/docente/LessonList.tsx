@@ -29,6 +29,7 @@ export default function LessonList() {
   } = useAppContext();
 
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { currentUser } = useAppContext();
 
@@ -45,10 +46,11 @@ export default function LessonList() {
   );
 
   const confirmDelete = async () => {
-    if (deleteTargetId) {
-      await handleDeleteLesson(deleteTargetId);
-      setDeleteTargetId(null);
-    }
+    if (!deleteTargetId || isDeleting) return;
+    setIsDeleting(true);
+    await handleDeleteLesson(deleteTargetId);
+    setDeleteTargetId(null);
+    setIsDeleting(false);
   };
 
   return (
@@ -151,6 +153,7 @@ export default function LessonList() {
         confirmText="Sí, eliminar"
         cancelText="Cancelar"
         variant="danger"
+        confirmLoading={isDeleting}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTargetId(null)}
       />

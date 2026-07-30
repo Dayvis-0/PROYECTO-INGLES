@@ -10,6 +10,7 @@ interface ModalConfirmProps {
   onConfirm: () => void;
   onCancel: () => void;
   variant?: "danger" | "warning" | "info";
+  confirmLoading?: boolean;
 }
 
 /**
@@ -25,6 +26,7 @@ export default function ModalConfirm({
   onConfirm,
   onCancel,
   variant = "danger",
+  confirmLoading = false,
 }: ModalConfirmProps) {
   if (!isOpen) return null;
 
@@ -82,9 +84,22 @@ export default function ModalConfirm({
           </button>
           <button
             onClick={onConfirm}
-            className={`py-3 px-6 rounded-xl text-sm font-black tracking-wide transition-all cursor-pointer active:scale-95 shadow-sm ${colors.btn}`}
+            disabled={confirmLoading}
+            className={`py-3 px-6 rounded-xl text-sm font-black tracking-wide transition-all shadow-sm ${
+              confirmLoading
+                ? "opacity-60 cursor-not-allowed scale-95"
+                : "cursor-pointer active:scale-95"
+            } ${colors.btn}`}
           >
-            {confirmText}
+            {confirmLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                {confirmText}
+              </span>
+            ) : confirmText}
           </button>
         </div>
       </div>
