@@ -54,9 +54,16 @@ export default function GrammarExampleSection() {
                     className="p-2 text-xs md:text-sm bg-slate-50 border-2 border-slate-200 rounded-lg font-bold text-slate-700 outline-none w-full text-center cursor-pointer"
                   >
                     <option value="Ninguno">Ninguno</option>
-                    <option value="Sujeto">👤 Sujeto</option>
-                    <option value="Verbo">⚡ Verbo</option>
-                    <option value="Complemento">📌 Complemento</option>
+                    <option value="Sujeto">👤 Sujeto / Subject</option>
+                    <option value="Verbo">⚡ Verbo / Verb</option>
+                    <option value="Complemento">📌 Complemento / Object</option>
+                    <option value="Pronombre">👤 Pronombre Personal / Personal Pronoun</option>
+                    <option value="Sustantivo">📦 Sustantivo / Noun</option>
+                    <option value="Adjetivo">🎨 Adjetivo / Adjective</option>
+                    <option value="Adverbio">🔄 Adverbio / Adverb</option>
+                    <option value="Preposicion">📍 Preposición / Preposition</option>
+                    <option value="Articulo">🔗 Artículo / Article</option>
+                    <option value="Auxiliar">⚙️ Verbo Auxiliar / Auxiliary Verb</option>
                   </select>
                 </div>
               );

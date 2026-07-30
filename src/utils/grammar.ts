@@ -97,8 +97,14 @@ export function getInteractiveGrammarSegments(
       let mappedRole = "Componente 💎";
       if (role === "Sujeto") mappedRole = "Sujeto / Subject 👤";
       else if (role === "Verbo") mappedRole = "Verbo / Verb ⚡";
-      else if (role === "Complemento")
-        mappedRole = "Complemento / Complement 📌";
+      else if (role === "Complemento") mappedRole = "Complemento / Object 📌";
+      else if (role === "Pronombre") mappedRole = "Pronombre Personal / Personal Pronoun 👤";
+      else if (role === "Sustantivo") mappedRole = "Sustantivo / Noun 📦";
+      else if (role === "Adjetivo") mappedRole = "Adjetivo / Adjective 🎨";
+      else if (role === "Adverbio") mappedRole = "Adverbio / Adverb 🔄";
+      else if (role === "Preposicion") mappedRole = "Preposición / Preposition 📍";
+      else if (role === "Articulo") mappedRole = "Artículo / Article 🔗";
+      else if (role === "Auxiliar") mappedRole = "Verbo Auxiliar / Auxiliary Verb ⚙️";
 
       return {
         word,
