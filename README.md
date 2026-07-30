@@ -1,5 +1,16 @@
 # UNAJMA Learn English — Plataforma Interactiva de Aprendizaje
 
+## Credenciales de Acceso (Prueba)
+
+- **Docente:**
+  - **Usuario:** `docente`
+  - **Contraseña:** `1234`
+
+- **Estudiante:**
+  - **Usuario:** `estudiante`
+  - **Contraseña:** `1234`
+
+
 **Curso:** Análisis y Diseño de Sistemas  
 **Universidad:** Universidad Nacional José María Arguedas (UNAJMA)
 
