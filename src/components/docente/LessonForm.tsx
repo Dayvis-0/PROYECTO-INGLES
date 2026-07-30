@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from "react";
-import { Plus, Trash2, AlertCircle, RotateCcw, ChevronDown, ChevronRight } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Plus, Trash2, AlertCircle, CheckCircle, RotateCcw, ChevronDown, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { EjercicioCalentamiento, PreguntaEvaluacion } from "../../types";
 import { useAppContext } from "../../context/AppContext";
@@ -71,6 +71,8 @@ export default function LessonForm() {
     formEvaluacion,
     editingLessonId,
     teacherFormError,
+    teacherFormSuccess,
+    setTeacherFormSuccess,
     formEjemploOracion, setFormEjemploOracion,
     formEjemploRoles, setFormEjemploRoles,
     formVocabularioDetallado, setFormVocabularioDetallado,
@@ -94,6 +96,14 @@ export default function LessonForm() {
     resetTeacherForm,
     handleSaveLesson,
   } = useTeacherForm();
+
+  // ── Auto-dismiss success message after 4s ──
+  useEffect(() => {
+    if (teacherFormSuccess) {
+      const t = setTimeout(() => setTeacherFormSuccess(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [teacherFormSuccess, setTeacherFormSuccess]);
 
   return (
     <div className="bg-white rounded-[18px] p-5 md:p-6 w-full shadow-sm space-y-6">
@@ -446,6 +456,13 @@ export default function LessonForm() {
             ))}
           </div>
         </SectionAccordion>
+
+        {teacherFormSuccess && (
+          <div className="bg-emerald-50 border-2 border-emerald-300 text-emerald-700 p-4 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm">
+            <CheckCircle className="w-5 h-5 shrink-0 text-emerald-500" />
+            <span>{teacherFormSuccess}</span>
+          </div>
+        )}
 
         {teacherFormError && (
           <div className="bg-red-50 border-2 border-red-200 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center gap-2">

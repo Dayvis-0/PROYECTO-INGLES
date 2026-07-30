@@ -37,6 +37,7 @@ export function useTeacherForm() {
     setEditingLessonId,
     teacherFormError,
     setTeacherFormError,
+    setTeacherFormSuccess,
     formEjemploOracion,
     setFormEjemploOracion,
     formEjemploRoles,
@@ -181,6 +182,7 @@ export function useTeacherForm() {
     ]);
     setEditingLessonId(null);
     setTeacherFormError(null);
+    setTeacherFormSuccess(null);
     setFormEjemploOracion("");
     setFormEjemploRoles([]);
     setFormVocabularioDetallado([]);
@@ -196,6 +198,7 @@ export function useTeacherForm() {
     setFormEvaluacion,
     setEditingLessonId,
     setTeacherFormError,
+    setTeacherFormSuccess,
     setFormEjemploOracion,
     setFormEjemploRoles,
     setFormVocabularioDetallado,
@@ -314,7 +317,7 @@ export function useTeacherForm() {
       const freshLessons = await fetchLecciones();
       setLessons(freshLessons);
 
-      alert(editingLessonId ? "¡Cambios guardados en la base de datos!" : "¡Nueva lección creada y guardada!");
+      setTeacherFormSuccess(editingLessonId ? "¡Cambios guardados en la base de datos!" : "¡Nueva lección creada y guardada!");
       resetTeacherForm();
     },
     [

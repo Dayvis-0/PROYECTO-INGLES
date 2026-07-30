@@ -12,6 +12,7 @@ interface TeacherFormState {
   formEvaluacion: PreguntaEvaluacion[];
   editingLessonId: string | null;
   teacherFormError: string | null;
+  teacherFormSuccess: string | null;
   teacherTab: "avance" | "notas";
   expandedStudents: Record<string, boolean>;
   formEjemploOracion: string;
@@ -33,6 +34,7 @@ const initialTeacherFormState: TeacherFormState = {
   ],
   editingLessonId: null,
   teacherFormError: null,
+  teacherFormSuccess: null,
   teacherTab: "avance",
   expandedStudents: {},
   formEjemploOracion: "",
@@ -53,6 +55,7 @@ type TeacherFormAction =
   | { type: "SET_FORM_EVALUACION"; payload: PreguntaEvaluacion[] | ((prev: PreguntaEvaluacion[]) => PreguntaEvaluacion[]) }
   | { type: "SET_EDITING_LESSON_ID"; payload: string | null }
   | { type: "SET_TEACHER_FORM_ERROR"; payload: string | null }
+  | { type: "SET_TEACHER_FORM_SUCCESS"; payload: string | null }
   | { type: "SET_TEACHER_TAB"; payload: "avance" | "notas" }
   | { type: "SET_EXPANDED_STUDENTS"; payload: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>) }
   | { type: "SET_FORM_EJEMPLO_ORACION"; payload: string }
@@ -72,6 +75,7 @@ function teacherFormReducer(state: TeacherFormState, action: TeacherFormAction):
     case "SET_FORM_EVALUACION": return { ...state, formEvaluacion: typeof action.payload === "function" ? (action.payload as (prev: PreguntaEvaluacion[]) => PreguntaEvaluacion[])(state.formEvaluacion) : action.payload };
     case "SET_EDITING_LESSON_ID": return { ...state, editingLessonId: action.payload };
     case "SET_TEACHER_FORM_ERROR": return { ...state, teacherFormError: action.payload };
+    case "SET_TEACHER_FORM_SUCCESS": return { ...state, teacherFormSuccess: action.payload };
     case "SET_TEACHER_TAB": return { ...state, teacherTab: action.payload };
     case "SET_EXPANDED_STUDENTS": return { ...state, expandedStudents: typeof action.payload === "function" ? (action.payload as (prev: Record<string, boolean>) => Record<string, boolean>)(state.expandedStudents) : action.payload };
     case "SET_FORM_EJEMPLO_ORACION": return { ...state, formEjemploOracion: action.payload };
@@ -102,6 +106,8 @@ export interface TeacherFormContextType {
   setEditingLessonId: (id: string | null) => void;
   teacherFormError: string | null;
   setTeacherFormError: (e: string | null) => void;
+  teacherFormSuccess: string | null;
+  setTeacherFormSuccess: (e: string | null) => void;
   teacherTab: "avance" | "notas";
   setTeacherTab: (t: "avance" | "notas") => void;
   expandedStudents: Record<string, boolean>;
@@ -148,6 +154,8 @@ export function TeacherFormProvider({ children }: { children: ReactNode }) {
     setEditingLessonId: (id) => dispatch({ type: "SET_EDITING_LESSON_ID", payload: id }),
     teacherFormError: state.teacherFormError,
     setTeacherFormError: (e) => dispatch({ type: "SET_TEACHER_FORM_ERROR", payload: e }),
+    teacherFormSuccess: state.teacherFormSuccess,
+    setTeacherFormSuccess: (e) => dispatch({ type: "SET_TEACHER_FORM_SUCCESS", payload: e }),
     teacherTab: state.teacherTab,
     setTeacherTab: (t) => dispatch({ type: "SET_TEACHER_TAB", payload: t }),
     expandedStudents: state.expandedStudents,
