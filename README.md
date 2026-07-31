@@ -1,6 +1,6 @@
 # UNAJMA Learn English — Plataforma Interactiva de Aprendizaje
 
-## Credenciales de Acceso (Prueba)
+## Login Credentials (Test)
 
 - **Docente:**
   - **Usuario:** `docente`
