@@ -78,7 +78,7 @@ const GradeResult = memo(function GradeResult({ activeLessonTitle, totalExamQues
             </span>
             <h3 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">{activeLessonTitle}</h3>
             <p className="text-red-650 text-sm md:text-base font-semibold max-w-2xl mx-auto">
-              Según las directivas pedagógicas integradas, necesitas obtener al menos la nota académica de 15 para habilitar la compleción de esta sesión.
+              Obtuviste una nota insuficiente para aprobar. Para asegurar tu aprendizaje, debes repetir la lección desde el vocabulario inicial.
             </p>
           </div>
         </>
@@ -97,24 +97,19 @@ const GradeResult = memo(function GradeResult({ activeLessonTitle, totalExamQues
         </div>
       </div>
 
-      <div className="pt-6">
+      <div className="pt-6 flex justify-center">
         {isApproved ? (
           <button onClick={() => { setWalkthroughActive(false); navigate("/estudiante"); }}
-            className="py-4 px-12 text-lg font-black tracking-wider uppercase rounded-xl btn-3d-green w-64 cursor-pointer"
+            className="py-4 px-12 text-lg font-black tracking-wider uppercase rounded-xl btn-3d-green w-72 cursor-pointer shadow-md active:scale-95 transition-all"
           >
-            CONCLUIR LECCIÓN
+            FINALIZAR LECCIÓN
           </button>
         ) : (
-          <div className="space-y-4 flex flex-col items-center">
-            <p className="text-xs md:text-sm text-rose-500 font-bold max-w-md mx-auto">
-              Iniciaremos la lección de nuevo desde vocabulario para ayudarte a dominar las frases.
-            </p>
-            <button onClick={resetWalkthrough}
-              className="py-4 px-8 text-sm md:text-base font-black tracking-wider uppercase rounded-xl bg-orange-500 hover:bg-orange-600 border-b-4 border-orange-700 text-white shadow-md w-72 cursor-pointer active:scale-95 transition-transform"
-            >
-              🔄 REINICIAR DESDE VOCABULARIO
-            </button>
-          </div>
+          <button onClick={resetWalkthrough}
+            className="py-4 px-8 text-sm md:text-base font-black tracking-wider uppercase rounded-xl bg-orange-500 hover:bg-orange-600 border-b-4 border-orange-700 text-white shadow-md w-80 cursor-pointer active:scale-95 transition-transform"
+          >
+            🔄 REPETIR LECCIÓN DESDE VOCABULARIO
+          </button>
         )}
       </div>
     </div>

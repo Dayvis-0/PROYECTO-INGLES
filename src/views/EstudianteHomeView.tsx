@@ -136,7 +136,7 @@ export default function EstudianteHomeView({ onLogout }: Props) {
                       hasAttempt ? "btn-3d-blue" : "btn-3d-green"
                     }`}
                   >
-                    {hasAttempt ? "REPETIR LECCIÓN" : "EMPEZAR LECCIÓN"}
+                    {hasAttempt ? "REPASAR LECCIÓN" : "EMPEZAR LECCIÓN"}
                   </button>
                 </div>
               </div>

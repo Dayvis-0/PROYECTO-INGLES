@@ -104,27 +104,36 @@ export default function PronunciacionStep({ subIndex }: { subIndex: number }) {
             <div className="text-[11px] bg-amber-50 text-amber-800 p-3 rounded-lg font-bold border border-amber-200 shadow-sm">
               <p>{speechError}</p>
             </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={manualInput}
-                onChange={(e) => setManualInput(e.target.value)}
-                placeholder="Escribí la frase en inglés..."
-                className="flex-1 px-4 py-2.5 border-2 border-[#e5e5e5] rounded-xl text-sm font-bold text-[#3c3c3c] outline-none focus:border-sky-500 transition-colors"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && manualInput.trim()) {
-                    checkManualInput(speechTarget, manualInput.trim());
-                  }
-                }}
-              />
-              <button
-                onClick={() => checkManualInput(speechTarget, manualInput.trim())}
-                disabled={!manualInput.trim()}
-                className="px-4 py-2.5 bg-sky-500 hover:bg-sky-400 text-white font-black rounded-xl text-sm tracking-wider cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-md flex items-center gap-1.5"
-              >
-                <Send className="w-4 h-4" />
-                VERIFICAR
-              </button>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-600 text-left">
+                Escribí la traducción de la frase en español:
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={manualInput}
+                  onChange={(e) => setManualInput(e.target.value)}
+                  placeholder="ej: Escribí la traducción en español..."
+                  className="flex-1 px-4 py-2.5 border-2 border-[#e5e5e5] rounded-xl text-sm font-bold text-[#3c3c3c] outline-none focus:border-sky-500 transition-colors"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && manualInput.trim()) {
+                      const targetSpanish = activeLesson.calentamiento[subIndex]?.fraseMetaEs || speechTarget;
+                      checkManualInput(targetSpanish, manualInput.trim());
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    const targetSpanish = activeLesson.calentamiento[subIndex]?.fraseMetaEs || speechTarget;
+                    checkManualInput(targetSpanish, manualInput.trim());
+                  }}
+                  disabled={!manualInput.trim()}
+                  className="px-4 py-2.5 bg-sky-500 hover:bg-sky-400 text-white font-black rounded-xl text-sm tracking-wider cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-md flex items-center gap-1.5"
+                >
+                  <Send className="w-4 h-4" />
+                  VERIFICAR
+                </button>
+              </div>
             </div>
           </div>
         )}

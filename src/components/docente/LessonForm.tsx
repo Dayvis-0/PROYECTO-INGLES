@@ -367,35 +367,9 @@ export default function LessonForm() {
               ))}
             </div>
 
-            {/* Collapsible: Ejemplos */}
-            <DetailsCollapsible
-              title="Ejemplos de la Fórmula"
-              count={formCalentamiento.filter(w => w.fraseMetaEn.trim()).length}
-            >
-              {formCalentamiento.filter(w => w.fraseMetaEn.trim()).length === 0 ? (
-                <p className="text-sm text-slate-400 italic">
-                  Aún no hay frases de ejemplo. Agrégalas en la sección "4. Construcción de Oraciones".
-                </p>
-              ) : (
-                <ul className="space-y-1.5">
-                  {formCalentamiento
-                    .filter(w => w.fraseMetaEn.trim())
-                    .map((w, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm">
-                        <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 text-[10px] font-black flex items-center justify-center shrink-0">
-                          {i + 1}
-                        </span>
-                        <code className="font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
-                          {w.fraseMetaEn}
-                        </code>
-                        <span className="text-slate-400 text-xs">→ {w.fraseMetaEs}</span>
-                      </li>
-                    ))}
-                </ul>
-              )}
-            </DetailsCollapsible>
           </div>
 
+          {/* Ejemplo Práctico Interactivo */}
           <GrammarExampleSection />
         </SectionAccordion>
 

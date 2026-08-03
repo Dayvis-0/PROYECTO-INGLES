@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { Calificacion } from "../types";
 import { cleanCompare } from "../utils/cleaners";
-import { playTone } from "../utils/audio";
+import { playTone, playSuccessSound, playErrorSound } from "../utils/audio";
 import { useAppContext } from "../context/AppContext";
 import { saveCalificacion, fetchCalificaciones } from "../lib/supabase-service";
 
@@ -52,18 +52,20 @@ export function useWalkthrough() {
           : activeLesson.listaVocabulario?.length || 0;
 
       if (vistosVocabulario.length < totalWords) {
+        playErrorSound();
         alert(
           "Por favor repasa y presiona todas las palabras del vocabulario para escuchar su pronunciación antes de continuar."
         );
         return;
       }
 
+      playSuccessSound();
       setFeedbackState("correct");
       setFeedbackMessage(
         "¡Vocabulario aprendido! Sigamos con la regla gramatical."
       );
     } else if (currentScreen.type === "gramatica") {
-      playTone(523.25, 0.04, 0.3);
+      playSuccessSound();
 
       setFeedbackState("correct");
       setFeedbackMessage(
@@ -80,9 +82,11 @@ export function useWalkthrough() {
         cleanCompare(studentInput) === cleanCompare(correctAns);
 
       if (isCorrect) {
+        playSuccessSound();
         setFeedbackState("correct");
         setFeedbackMessage("¡Extraordinario! Traducido perfectamente.");
       } else {
+        playErrorSound();
         setFeedbackState("incorrect");
         setFeedbackMessage("¡Casi lo logras!");
         setCorrectAnswerReveal(correctAns);
@@ -102,11 +106,13 @@ export function useWalkthrough() {
       const similarity = voiceSimilarity !== null ? voiceSimilarity : 0;
 
       if (similarity >= 70) {
+        playSuccessSound();
         setFeedbackState("correct");
         setFeedbackMessage(
           `¡Espectacular pronunciación! Lograste un ${similarity}% de coincidencia.`
         );
       } else {
+        playErrorSound();
         setFeedbackState("incorrect");
         setFeedbackMessage(
           `Coincidencia insuficiente (${similarity}%). Intenta hablar fuerte y claro.`
@@ -118,6 +124,7 @@ export function useWalkthrough() {
       const targetEval = activeLesson.evaluacion[idx];
 
       if (selectedExamOptionIndex === null) {
+        playErrorSound();
         setFeedbackState("incorrect");
         setFeedbackMessage(
           "Por favor selecciona una alternativa antes de continuar."
@@ -131,12 +138,14 @@ export function useWalkthrough() {
         targetEval.opciones.find((o) => o.correcta)?.texto || "";
 
       if (isCorrect) {
+        playSuccessSound();
         setFeedbackState("correct");
         setFeedbackMessage(
           "¡Respuesta Correcta! Sigue sumando puntos."
         );
         setExamCorrectCount((prev: number) => prev + 1);
       } else {
+        playErrorSound();
         setFeedbackState("incorrect");
         setFeedbackMessage(
           "La respuesta seleccionada es incorrecta."
