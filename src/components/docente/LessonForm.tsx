@@ -165,6 +165,75 @@ export default function LessonForm() {
         {/* 3. ESTRUCTURA GRAMATICAL                                          */}
         {/* ================================================================ */}
         <SectionAccordion number="3" title="Estructura Gramatical">
+          {/* Plantillas Rápidas */}
+          <div className="bg-sky-50/80 p-4 rounded-xl border border-sky-100 space-y-2">
+            <label className="text-xs font-black text-sky-700 uppercase tracking-wider block flex items-center gap-1.5">
+              ✨ Plantillas Rápidas (Llena la gramática con 1 clic):
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                {
+                  name: "⚡ Present Simple",
+                  titulo: "PRESENT SIMPLE",
+                  desc: "Rutinas y hechos generales",
+                  formula: "Subject + Verb (-s/-es) + Complement",
+                  columnas: [
+                    { titulo: "I / You / We / They", verbo: "play / work", nota: "Verbo base" },
+                    { titulo: "He / She / It", verbo: "plays / works", nota: "Agregar -s o -es" },
+                    { titulo: "Fórmula General", verbo: "S + V + C", nota: "Ej: She likes pizza" },
+                  ],
+                },
+                {
+                  name: "🕒 Past Simple",
+                  titulo: "PAST SIMPLE",
+                  desc: "Acciones completadas en el pasado",
+                  formula: "Subject + Verb (-ed / Irregular) + Complement",
+                  columnas: [
+                    { titulo: "Todos los sujetos", verbo: "played / went", nota: "Forma pasado" },
+                    { titulo: "Negativo / Pregunta", verbo: "didn't + Verb", nota: "Usa auxiliar DID" },
+                    { titulo: "Fórmula General", verbo: "S + V(ed) + C", nota: "Ej: They visited Paris" },
+                  ],
+                },
+                {
+                  name: "🚀 Present Continuous",
+                  titulo: "PRESENT CONTINUOUS",
+                  desc: "Acciones sucediendo en el momento",
+                  formula: "Subject + AM / IS / ARE + Verb(-ing) + Complement",
+                  columnas: [
+                    { titulo: "I / He / She / It", verbo: "am / is working", nota: "Singular + Verb-ing" },
+                    { titulo: "You / We / They", verbo: "are playing", nota: "Plural + Verb-ing" },
+                    { titulo: "Fórmula General", verbo: "S + BE + V-ing", nota: "Ej: I am studying" },
+                  ],
+                },
+                {
+                  name: "💡 Modal (CAN)",
+                  titulo: "MODAL VERBS (CAN)",
+                  desc: "Habilidades y permisos",
+                  formula: "Subject + CAN + Base Verb + Complement",
+                  columnas: [
+                    { titulo: "Todos los sujetos", verbo: "CAN", nota: "Sin cambio por sujeto" },
+                    { titulo: "Verbo Principal", verbo: "speak / swim", nota: "Siempre forma base" },
+                    { titulo: "Fórmula General", verbo: "S + CAN + V + C", nota: "Ej: She can swim" },
+                  ],
+                },
+              ].map((preset, pIdx) => (
+                <button
+                  key={pIdx}
+                  type="button"
+                  onClick={() => {
+                    setFormGramaticaTitulo(preset.titulo);
+                    setFormGramaticaDesc(preset.desc);
+                    setFormFormulaGramatica(preset.formula);
+                    setFormGramaticaColumnas(preset.columnas);
+                  }}
+                  className="px-3 py-1.5 bg-white hover:bg-sky-500 hover:text-white border-2 border-sky-200 text-sky-700 font-bold text-xs rounded-lg transition-all cursor-pointer shadow-xs active:scale-95"
+                >
+                  {preset.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Título y Descripción */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -219,7 +288,7 @@ export default function LessonForm() {
           </div>
 
           {/* Editor de columnas */}
-          <DetailsCollapsible title="📊 Configurar Columnas de la Tarjeta" count={0}>
+          <DetailsCollapsible title="📊 Personalizar Columnas de la Tarjeta (Opcional)" count={0}>
             <div className="space-y-5">
               {formGramaticaColumnas.map((col, i) => (
                 <div key={i} className="p-3 border border-slate-200 rounded-xl bg-white space-y-2.5">
@@ -266,7 +335,7 @@ export default function LessonForm() {
             </div>
           </DetailsCollapsible>
 
-          {/* Fórmula Gramatical */}
+          {/* Fórmula Gramatical con Asistente Rápido */}
           <div className="space-y-2">
             <label className="block text-base md:text-lg font-bold text-slate-700">
               Fórmula Gramatical general (para la caja oscura)
@@ -279,6 +348,24 @@ export default function LessonForm() {
               placeholder="ej: Subject + Verb (-s/-es) + Complement"
               className="w-full px-5 py-4 border-2 border-slate-200 rounded-xl text-base md:text-lg font-bold font-mono outline-none focus:border-sky-500 text-sky-700 bg-sky-50/20 transition-colors shadow-xs"
             />
+            {/* Constructor rápido de bloques para la fórmula */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-[11px] font-bold text-slate-400 uppercase">Insertar bloque rápido:</span>
+              {["Subject", "Verb", "Complement", "AM / IS / ARE", "Verb(-ing)", "Verb(-ed)", "CAN"].map((chip, cIdx) => (
+                <button
+                  key={cIdx}
+                  type="button"
+                  onClick={() => {
+                    const current = formFormulaGramatica.trim();
+                    const nextVal = current ? `${current} + ${chip}` : chip;
+                    setFormFormulaGramatica(nextVal);
+                  }}
+                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono font-bold text-xs rounded-md transition-colors cursor-pointer"
+                >
+                  +{chip}
+                </button>
+              ))}
+            </div>
 
             {/* Collapsible: Ejemplos */}
             <DetailsCollapsible
