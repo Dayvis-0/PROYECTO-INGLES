@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useAppContext } from "./context/AppContext";
+import { supabase } from "./lib/supabase";
 import LoginView from "./views/LoginView";
 import DocenteView from "./views/DocenteView";
 import EstudianteHomeView from "./views/EstudianteHomeView";
@@ -31,7 +32,25 @@ function AppShell() {
   } = useAppContext();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  // Escuchar cambios de sesión en tiempo real:
+  // si Supabase cierra la sesión (expiración, signOut remoto), limpiar todo.
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        setCurrentUser(null);
+        setUsernameInput("");
+        setPasswordInput("");
+        setWalkthroughActive(false);
+        localStorage.removeItem("unajma_current_user");
+        navigate("/");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate, setCurrentUser, setUsernameInput, setPasswordInput, setWalkthroughActive]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setCurrentUser(null);
     setUsernameInput("");
     setPasswordInput("");

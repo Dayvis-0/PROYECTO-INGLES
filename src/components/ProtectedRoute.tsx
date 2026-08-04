@@ -9,7 +9,8 @@ interface Props {
 }
 
 /**
- * ProtectedRoute — verifica que el usuario esté logueado y tenga el rol adecuado.
+ * ProtectedRoute — verifica que exista sesión JWT de Supabase
+ * y que el usuario tenga el rol adecuado.
  */
 export default function ProtectedRoute({ children, allowedRoles }: Props) {
   const { currentUser } = useAppContext();
@@ -17,6 +18,14 @@ export default function ProtectedRoute({ children, allowedRoles }: Props) {
 
   useEffect(() => {
     const checkAuth = async () => {
+      // 1. Verificar sesión JWT REAL (no confiar solo en localStorage)
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        setAuthorized(false);
+        return;
+      }
+
       if (!currentUser) {
         setAuthorized(false);
         return;

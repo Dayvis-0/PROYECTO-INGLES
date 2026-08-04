@@ -6,7 +6,10 @@ import { useAppContext } from "../context/AppContext";
 import { supabase } from "../lib/supabase";
 
 /**
- * LoginView — consulta directa a la tabla usuario (nombre_usuario + contrasena).
+ * LoginView — autentica contra Supabase Auth.
+ * El usuario ingresa nombre_usuario + contraseña (como siempre);
+ * el frontend traduce nombre_usuario → email y llama a signInWithPassword.
+ * La contraseña ya NO se consulta en texto plano contra la tabla usuario.
  */
 export default function LoginView() {
   const {
@@ -49,31 +52,41 @@ export default function LoginView() {
     }
 
     try {
-      // Consultar la BD directo (nombre_usuario + contrasena en texto plano)
-      const { data: user, error } = await supabase
-        .from("usuario")
-        .select("nombre_usuario")
-        .eq("nombre_usuario", username)
-        .eq("contrasena", password)
-        .maybeSingle();
+      // 1. Traducir nombre_usuario → email vía función segura (SECURITY DEFINER).
+      //    No consultamos la tabla usuario directo: con RLS activo, el login
+      //    ocurre ANTES de que exista sesión, y la tabla ya no sería visible.
+      const { data: email, error: lookupError } = await supabase
+        .rpc("get_email_by_username", { p_username: username });
 
-      if (error) {
-        console.error("Error BD:", error);
+      if (lookupError) {
+        console.error("Error RPC:", lookupError);
         setLoginError("Error al consultar usuario");
         return;
       }
 
-      if (!user) {
+      if (!email) {
         setLoginError("Usuario o contraseña incorrectos");
         return;
       }
 
-      // Login exitoso
-      setCurrentUser(user.nombre_usuario);
-      localStorage.setItem("unajma_current_user", user.nombre_usuario);
+      // 2. Autenticar contra Supabase Auth (contraseña hasheada + sesión JWT)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        // Mensaje genérico a propósito: no filtrar si el error es de email o password
+        setLoginError("Usuario o contraseña incorrectos");
+        return;
+      }
+
+      // 3. Sesión válida → guardar usuario local (identificador interno de la app)
+      setCurrentUser(username);
+      localStorage.setItem("unajma_current_user", username);
 
       // Redirigir según rol
-      await checkRoleAndRedirect(user.nombre_usuario);
+      await checkRoleAndRedirect(username);
 
     } catch (err) {
       console.error("Error inesperado en login:", err);

@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react";
+import { supabase } from "../lib/supabase";
 
 // ─── State ────────────────────────────────────────────────
 interface AuthState {
@@ -54,6 +55,44 @@ export function useAuthContext(): AuthContextType {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialAuthState);
+
+  // Restaurar el usuario desde la sesión JWT de Supabase al montar.
+  // Si NO hay sesión válida, se limpia cualquier usuario local (por si quedó
+  // uno viejo de la época del login con texto plano).
+  useEffect(() => {
+    let cancelled = false;
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (cancelled) return;
+
+      if (!session) {
+        localStorage.removeItem("unajma_current_user");
+        dispatch({ type: "SET_CURRENT_USER", payload: null });
+        return;
+      }
+
+      // Sesión válida → buscar el nombre de usuario vinculado por auth_uid
+      const { data: usuario } = await supabase
+        .from("usuario")
+        .select("nombre_usuario")
+        .eq("auth_uid", session.user.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      const nombre = usuario?.nombre_usuario ?? null;
+      if (nombre) {
+        localStorage.setItem("unajma_current_user", nombre);
+      } else {
+        localStorage.removeItem("unajma_current_user");
+      }
+      dispatch({ type: "SET_CURRENT_USER", payload: nombre });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Sync currentUser to localStorage
   useEffect(() => {
