@@ -1,16 +1,23 @@
 import { HeaderBar } from "../components/ui";
 import { LessonForm, LessonList, MonitoringPanel } from "../components/docente";
+import { useAppContext } from "../context/AppContext";
 
 interface Props {
   onLogout: () => void;
 }
 
 export default function DocenteView({ onLogout }: Props) {
+  const { currentUser } = useAppContext();
+
+  const teacherName = currentUser
+    ? (currentUser.toLowerCase().startsWith("prof") ? currentUser : `Prof. ${currentUser}`)
+    : "Docente";
+
   return (
     <div className="flex-1 flex flex-col bg-slate-50/50">
       <HeaderBar
         title="Panel del Docente"
-        subtitle="Prof. Farfán | UNAJMA - I.E. M.V.A."
+        subtitle={`${teacherName} | UNAJMA - I.E. M.V.A.`}
         onLogout={onLogout}
       />
 
